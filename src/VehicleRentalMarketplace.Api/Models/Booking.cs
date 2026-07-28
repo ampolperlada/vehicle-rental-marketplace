@@ -7,18 +7,15 @@ namespace VehicleRentalMarketplace.Api.Models
     {
         [Key]
         public Guid BookingID { get; set;} = Guid.NewGuid();
-
-        //fk 1: asset
-
+        
         [Required]
         public Guid AssetID {get; set;}
 
         [ForeignKey(nameof(AssetID))]
         public Asset Asset {get; set;} = null!;
 
-        //fk 2 renter / user 
         [Required]
-        public Guid RenderID {get; set;}
+        public Guid RenterID { get; set; }
 
         [ForeignKey(nameof(RenterID))]
         public User Renter {get; set;} = null!;
@@ -37,7 +34,6 @@ namespace VehicleRentalMarketplace.Api.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal TotalRentalPrice {get; set;}
 
-        //Pending, Approve, Paid, Active, Completed, Completed, Rejected
 
         public string Status {get; set;} = "Pending";
 
