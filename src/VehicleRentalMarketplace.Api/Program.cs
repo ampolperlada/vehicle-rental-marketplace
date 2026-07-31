@@ -1,13 +1,18 @@
+using System.Numerics;
 using Microsoft.EntityFrameworkCore;
 // Make sure this namespace matches where your ApplicationDbContext class is located
 using VehicleRentalMarketplace.Api.Data; 
+using VehicleRentalMarketplace.Api.Models;
+using VehicleRentalMarketplace.Api.Services;
+using VehicleRentalMarketplace.Api.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-
+builder.Services.AddScoped<IAssetService, AssetService>();
 // 🟢 REGISTER DBCONTEXT HERE
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
