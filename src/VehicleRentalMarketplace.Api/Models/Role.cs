@@ -5,7 +5,7 @@ namespace VehicleRentalMarketplace.Api.Models
     public class Role
     {
         [Key]
-        public Guid RoleID {get; set;} = Guid.NewGuid();
+        public int RoleID {get; set;}
 
         [Required]
         [MaxLength(50)]

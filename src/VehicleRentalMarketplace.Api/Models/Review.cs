@@ -15,7 +15,7 @@ namespace VehicleRentalMarketplace.Api.Models
         public Asset Asset { get; set; } = null!;
 
         [Required]
-        public Guid UserID { get; set; }
+        public int UserID { get; set; }
 
         [ForeignKey(nameof(UserID))]
         public User User { get; set; } = null!;

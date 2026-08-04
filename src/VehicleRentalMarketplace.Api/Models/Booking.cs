@@ -3,42 +3,39 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VehicleRentalMarketplace.Api.Models
 {
- public class Booking
+    public class Booking
     {
         [Key]
-        public Guid BookingID { get; set;} = Guid.NewGuid();
-        
+        public Guid BookingID { get; set; } = Guid.NewGuid();
+
         [Required]
-        public Guid AssetID {get; set;}
+        public Guid AssetID { get; set; } 
 
         [ForeignKey(nameof(AssetID))]
-        public Asset Asset {get; set;} = null!;
+        public Asset Asset { get; set; } = null!;
 
         [Required]
-        public Guid RenterID { get; set; }
+        public int RenterID { get; set; } 
 
         [ForeignKey(nameof(RenterID))]
-        public User Renter {get; set;} = null!;
+        public User Renter { get; set; } = null!;
 
         [Required]
-        public DateTime StartDate {get; set;}
+        public DateTime StartDate { get; set; }
 
         [Required]
-        public DateTime EndDate {get; set;}
+        public DateTime EndDate { get; set; }
 
-        public int NumberofDays {get; set;}
-
-        [Column(TypeName ="decimal(18,2)")]
-        public decimal DailyRate {get; set;}
+        public int NumberofDays { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
-        public decimal TotalRentalPrice {get; set;}
+        public decimal DailyRate { get; set; }
 
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal TotalRentalPrice { get; set; }
 
-        public string Status {get; set;} = "Pending";
-
-        public string? RejectionReason {get; set;}
-
-        public DateTime CreatedAt {get; set;} = DateTime.UtcNow;
-    }   
+        public string Status { get; set; } = "Pending";
+        public string? RejectionReason { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    }
 }

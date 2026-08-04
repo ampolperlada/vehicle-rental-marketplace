@@ -17,7 +17,8 @@ namespace VehicleRentalMarketplace.Api.Migrations
                 name: "Roles",
                 columns: table => new
                 {
-                    RoleID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    RoleID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     RoleName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
@@ -29,14 +30,15 @@ namespace VehicleRentalMarketplace.Api.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    RoleID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RoleID = table.Column<int>(type: "int", nullable: false),
                     Username = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Token = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Firstname = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Lasname = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Lastname = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     City = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -61,7 +63,7 @@ namespace VehicleRentalMarketplace.Api.Migrations
                 columns: table => new
                 {
                     AssetID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserID = table.Column<int>(type: "int", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -92,7 +94,7 @@ namespace VehicleRentalMarketplace.Api.Migrations
                 {
                     BookingID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     AssetID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    RenterID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    RenterID = table.Column<int>(type: "int", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     NumberofDays = table.Column<int>(type: "int", nullable: false),
@@ -125,7 +127,7 @@ namespace VehicleRentalMarketplace.Api.Migrations
                 {
                     PurchaseID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     AssetID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    BuyerID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    BuyerID = table.Column<int>(type: "int", nullable: false),
                     PurchasePrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     RejectedReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -184,7 +186,7 @@ namespace VehicleRentalMarketplace.Api.Migrations
                 {
                     ReviewID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     AssetID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserID = table.Column<int>(type: "int", nullable: false),
                     BookingID = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     PurchaseID = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     Rating = table.Column<int>(type: "int", nullable: false),
@@ -225,9 +227,9 @@ namespace VehicleRentalMarketplace.Api.Migrations
                 columns: new[] { "RoleID", "RoleName" },
                 values: new object[,]
                 {
-                    { new Guid("11111111-1111-1111-1111-111111111111"), "Admin" },
-                    { new Guid("22222222-2222-2222-2222-222222222222"), "Vendor" },
-                    { new Guid("33333333-3333-3333-3333-333333333333"), "Customer" }
+                    { 1, "Admin" },
+                    { 2, "Vendor" },
+                    { 3, "Customer" }
                 });
 
             migrationBuilder.CreateIndex(

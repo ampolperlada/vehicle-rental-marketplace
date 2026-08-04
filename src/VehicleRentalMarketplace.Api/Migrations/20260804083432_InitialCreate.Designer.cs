@@ -12,7 +12,7 @@ using VehicleRentalMarketplace.Api.Data;
 namespace VehicleRentalMarketplace.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260804075829_InitialCreate")]
+    [Migration("20260804083432_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -74,8 +74,8 @@ namespace VehicleRentalMarketplace.Api.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("UserID")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("UserID")
+                        .HasColumnType("int");
 
                     b.HasKey("AssetID");
 
@@ -108,8 +108,8 @@ namespace VehicleRentalMarketplace.Api.Migrations
                     b.Property<string>("RejectionReason")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("RenterID")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("RenterID")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -178,8 +178,8 @@ namespace VehicleRentalMarketplace.Api.Migrations
                     b.Property<Guid>("AssetID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("BuyerID")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("BuyerID")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
@@ -228,8 +228,8 @@ namespace VehicleRentalMarketplace.Api.Migrations
                     b.Property<int>("Rating")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("UserID")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("UserID")
+                        .HasColumnType("int");
 
                     b.HasKey("ReviewID");
 
@@ -246,9 +246,11 @@ namespace VehicleRentalMarketplace.Api.Migrations
 
             modelBuilder.Entity("VehicleRentalMarketplace.Api.Models.Role", b =>
                 {
-                    b.Property<Guid>("RoleID")
+                    b.Property<int>("RoleID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoleID"));
 
                     b.Property<string>("RoleName")
                         .IsRequired()
@@ -262,26 +264,28 @@ namespace VehicleRentalMarketplace.Api.Migrations
                     b.HasData(
                         new
                         {
-                            RoleID = new Guid("11111111-1111-1111-1111-111111111111"),
+                            RoleID = 1,
                             RoleName = "Admin"
                         },
                         new
                         {
-                            RoleID = new Guid("22222222-2222-2222-2222-222222222222"),
+                            RoleID = 2,
                             RoleName = "Vendor"
                         },
                         new
                         {
-                            RoleID = new Guid("33333333-3333-3333-3333-333333333333"),
+                            RoleID = 3,
                             RoleName = "Customer"
                         });
                 });
 
             modelBuilder.Entity("VehicleRentalMarketplace.Api.Models.User", b =>
                 {
-                    b.Property<Guid>("UserID")
+                    b.Property<int>("UserID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserID"));
 
                     b.Property<string>("Address")
                         .IsRequired()
@@ -302,7 +306,7 @@ namespace VehicleRentalMarketplace.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Lasname")
+                    b.Property<string>("Lastname")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -314,8 +318,8 @@ namespace VehicleRentalMarketplace.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("RoleID")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("RoleID")
+                        .HasColumnType("int");
 
                     b.Property<string>("State")
                         .IsRequired()

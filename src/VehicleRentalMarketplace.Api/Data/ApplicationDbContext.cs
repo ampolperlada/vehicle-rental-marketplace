@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VehicleRentalMarketplace.Api.Models;
+using VehicleRentalMarketplace.Api.Helpers;
 
 namespace VehicleRentalMarketplace.Api.Data
 {
@@ -27,15 +28,33 @@ namespace VehicleRentalMarketplace.Api.Data
                 relationship.DeleteBehavior = DeleteBehavior.Restrict;
             }
 
-            var adminRoleId = Guid.Parse("11111111-1111-1111-1111-111111111111");
-            var vendorRoleId = Guid.Parse("22222222-2222-2222-2222-222222222222");
-            var customerRoleId = Guid.Parse("33333333-3333-3333-3333-333333333333");
-
+            // Seed Roles (ID 1, 2, 3)
             modelBuilder.Entity<Role>().HasData(
-                new Role { RoleID = adminRoleId, RoleName = "Admin" },
-                new Role { RoleID = vendorRoleId, RoleName = "Vendor" },
-                new Role { RoleID = customerRoleId, RoleName = "Customer" }
+                new Role { RoleID = 1, RoleName = "Admin" },
+                new Role { RoleID = 2, RoleName = "Vendor" },
+                new Role { RoleID = 3, RoleName = "Customer" }
             );
+
+            // Seed Admin User
+            //modelBuilder.Entity<User>().HasData(
+            //     new User
+            //     {
+            //         UserID = 1,
+            //         Username = "admin",
+            //         Email = "admin@vehiclemarketplace.com",
+            //         Password = PasswordHelper.HashPassword("Admin@123"),
+            //         Firstname = "System",
+            //         Lastname = "Admin",
+            //         PhoneNumber = "09123456789",
+            //         Address = "Admin Address",
+            //         City = "Manila",
+            //         State = "Metro Manila",
+            //         RoleID = 1,
+            //         isActive = true,
+            //         CreatedAt = new DateTime(2026, 8, 4, 0, 0, 0, DateTimeKind.Utc), 
+            //         UpdatedAt = new DateTime(2026, 8, 4, 0, 0, 0, DateTimeKind.Utc) 
+            //     }
+            // );
         }
     }
 }
