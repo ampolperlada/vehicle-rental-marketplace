@@ -8,31 +8,35 @@ namespace VehicleRentalMarketplace.Api.Models
         [Key]
         public Guid ReviewID { get; set; } = Guid.NewGuid();
 
-        [Required]
-        public Guid AssetID { get; set; }
-
-        [ForeignKey(nameof(AssetID))]
-        public Asset Asset { get; set; } = null!;
-
+        /// <summary>
+        /// Explicit Foreign Key referencing the user writing the review.
+        /// </summary>
         [Required]
         public Guid UserID { get; set; }
 
         [ForeignKey(nameof(UserID))]
         public User User { get; set; } = null!;
 
+        /// <summary>
+        /// Links to the specific booking being reviewed (if rental).
+        /// </summary>
         public Guid? BookingID { get; set; }
 
         [ForeignKey(nameof(BookingID))]
         public Booking? Booking { get; set; }
 
-        public Guid? PurchaseID { get; set; }
+        /// <summary>
+        /// Links to the specific payment tied to this transaction.
+        /// </summary>
+        public Guid? PaymentID { get; set; }
 
-        [ForeignKey(nameof(PurchaseID))]
-        public Purchase? Purchase { get; set; }
+        [ForeignKey(nameof(PaymentID))]
+        public Payment? Payment { get; set; }
 
         [Range(1, 5)]
         public int Rating { get; set; }
 
+        [MaxLength(1000)]
         public string Comment { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
