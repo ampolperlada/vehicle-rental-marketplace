@@ -12,8 +12,8 @@ using VehicleRentalMarketplace.Api.Data;
 namespace VehicleRentalMarketplace.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260728081329_SeedRoles")]
-    partial class SeedRoles
+    [Migration("20260804075829_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
