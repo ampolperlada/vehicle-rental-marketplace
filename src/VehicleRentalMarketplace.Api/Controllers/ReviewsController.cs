@@ -1,0 +1,1 @@
+//dalawa lang relationship neto bookingid and paymentid cant be 1 need isang pk ata 
