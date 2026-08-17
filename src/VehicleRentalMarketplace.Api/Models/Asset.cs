@@ -6,7 +6,8 @@ namespace VehicleRentalMarketplace.Api.Models
     public class Asset
     {
         [Key]
-        public Guid AssetID { get; set; } = Guid.NewGuid();
+        //public Guid AssetID { get; set; } = Guid.NewGuid();
+        public int AssetID { get; set; }
 
         [Required]
         public int UserID { get; set; }
