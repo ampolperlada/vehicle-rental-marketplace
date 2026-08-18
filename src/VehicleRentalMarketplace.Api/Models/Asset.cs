@@ -1,38 +1,57 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace VehicleRentalMarketplace.Api.Models
+
+namespace VehicleRentalMarketplace.Models
 {
     public class Asset
     {
         [Key]
-        //public Guid AssetID { get; set; } = Guid.NewGuid();
         public int AssetID { get; set; }
 
-        [Required]
-        public int UserID { get; set; }
-
-        [ForeignKey(nameof(UserID))]
-        public User Owner { get; set; } = null!;
+        [ForeignKey("User")]
+        public int RenterID { get; set; }
 
         [Required]
-        [MaxLength(150)]
+        [StringLength(200)]
         public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public string Category { get; set; } = "Vehicle"; 
-        public string ListingType { get; set; } = "Rent"; 
+
+        [StringLength(1000)]
+        public string? Description { get; set; }
+
+        [ForeignKey("Category")]
+        public int? CategoryID { get; set; }  // Renamed for clarity
+
+        [ForeignKey("ListingType")]
+        public int? ListingTypeID { get; set; }  // Foreign key to ListingType
 
         [Column(TypeName = "decimal(18,2)")]
-        public decimal DailyRate { get; set; }
+        public decimal? DailyRate { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal? SalePrice { get; set; }
 
-        public string Location { get; set; } = string.Empty;
-        public string ApprovalStatus { get; set; } = "Pending"; 
-        public Guid? ApprovedBy { get; set; }
-        public bool IsAvailable { get; set; } = true;
+        [StringLength(255)]
+        public string? Location { get; set; }
+
+        [StringLength(20)]
+        public string ApprovalStatus { get; set; } = "Pending"; // Pending, Approved, Rejected
+
+        public int? ApproveBy { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
+
+        public bool IsActive { get; set; } = true;
+
+        [StringLength(20)]
+        public string Status { get; set; } = "Available"; // Available, Rented, Sold
+
+        // Navigation properties
+        public virtual User? User { get; set; }
+        public virtual Category? Category { get; set; }
+        public virtual ListingType? ListingType { get; set; }  // New navigation
+        public virtual ICollection<Purchase> Purchases { get; set; } = new List<Purchase>();
+        public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
     }
 }
