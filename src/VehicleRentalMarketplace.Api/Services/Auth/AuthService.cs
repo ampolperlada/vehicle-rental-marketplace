@@ -1,107 +1,115 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using VehicleRentalMarketplace.Api.Data;
+using VehicleRentalMarketplace.Data;
+using VehicleRentalMarketplace.Models;
 using VehicleRentalMarketplace.Api.Dtos.Auth;
-using VehicleRentalMarketplace.Api.Helpers;
-using VehicleRentalMarketplace.Api.Models;
 
-namespace VehicleRentalMarketplace.Api.Services.Auth
+namespace VehicleRentalMarketplace.Services
 {
-    public class AuthService : IAuthService
+    public class AuthService
     {
         private readonly ApplicationDbContext _context;
-        private readonly IJwtService _jwtService;
+        private readonly TokenService _tokenService;
 
-        public AuthService(ApplicationDbContext context, IJwtService jwtService)
+        public AuthService(ApplicationDbContext context, TokenService tokenService)
         {
             _context = context;
-            _jwtService = jwtService;
+            _tokenService = tokenService;
         }
 
-        public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
+        public async Task<User?> Authenticate(string username, string password)
         {
-            // Check if email exists
-            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
+
+            if (user == null)
+                return null;
+
+            if (!VerifyPassword(password, user.PasswordHash))
+                return null;
+
+            // Generate token but DON'T save to database
+            // Just return the user with the token
+            user.Token = _tokenService.GenerateToken(user);
+
+            // Remove this line - don't save token to DB
+            // await _context.SaveChangesAsync();
+
+            return user;
+        }
+
+        public async Task<User> Register(RegisterDTO registerDto)
+        {
+            var existingUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.Username == registerDto.Username);
+
             if (existingUser != null)
-                throw new Exception("Email already registered");
+                throw new InvalidOperationException("Username already exists");
 
-            // Check if username exists
-            var existingUsername = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
-            if (existingUsername != null)
-                throw new Exception("Username already taken");
+            int roleId = registerDto.RoleID ?? 2;
 
-            // Get Customer role
-            var customerRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Customer");
-            if (customerRole == null)
-                throw new Exception("Default role not found");
+            var role = await _context.Roles.FindAsync(roleId);
+            if (role == null)
+                throw new InvalidOperationException("Invalid role");
 
-            // Create user
             var user = new User
             {
-                Username = request.Username,
-                Email = request.Email,
-                Password = PasswordHelper.HashPassword(request.Password),
-                Firstname = request.Firstname,
-                Lastname = request.Lastname,
-                PhoneNumber = request.PhoneNumber,
-                Address = request.Address,
-                City = request.City,
-                State = request.State,
-                RoleID = customerRole.RoleID,
-                isActive = true,
+                Username = registerDto.Username,
+                // This line calls HashPassword - make sure it exists!
+                PasswordHash = HashPassword(registerDto.Password),
+                Firstname = registerDto.Firstname,
+                Lastname = registerDto.Lastname,
+                Email = registerDto.Email,
+                PhoneNumber = registerDto.PhoneNumber,
+                Address = registerDto.Address,
+                City = registerDto.City,
+                State = registerDto.State,
+                RoleID = roleId,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                IsActive = true
             };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            // Get user with role
-            var userWithRole = await _context.Users
-                .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.UserID == user.UserID);
+            user.Token = _tokenService.GenerateToken(user);
+            await _context.SaveChangesAsync();
 
-            // Generate token
-            var token = _jwtService.GenerateToken(userWithRole!);
-
-            return new AuthResponse
-            {
-                Token = token,
-                Email = user.Email,
-                Username = user.Username,
-                Role = userWithRole!.Role.RoleName,
-                UserID = user.UserID,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(60)
-            };
+            return user;
         }
 
-        public async Task<AuthResponse> LoginAsync(LoginRequest request)
+        public async Task<bool> Logout(int userId)
         {
-            // Find user
-            var user = await _context.Users
-                .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.Username == request.Username);
-
+            var user = await _context.Users.FindAsync(userId);
             if (user == null)
-                throw new Exception("Invalid username or password");
+                return false;
 
-            if (!user.isActive)
-                throw new Exception("Account is deactivated");
+            user.Token = null;
+            user.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return true;
+        }
 
-            if (!PasswordHelper.VerifyPassword(request.Password, user.Password))
-                throw new Exception("Invalid username or password");
+        public async Task<User?> GetUserByToken(string token)
+        {
+            return await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Token == token);
+        }
 
-            // Generate token
-            var token = _jwtService.GenerateToken(user);
+        private string HashPassword(string password)
+        {
+            // For development - simple Base64 encoding
+            return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(password));
+        }
 
-            return new AuthResponse
-            {
-                Token = token,
-                Email = user.Email,
-                Username = user.Username,
-                Role = user.Role.RoleName,
-                UserID = user.UserID,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(60)
-            };
+        /// <summary>
+        /// Verifies a password against a stored hash
+        /// </summary>
+        private bool VerifyPassword(string password, string hash)
+        {
+            // For development - compare Base64 encoded values
+            return HashPassword(password) == hash;
         }
     }
 }

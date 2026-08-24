@@ -1,41 +1,59 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace VehicleRentalMarketplace.Api.Models
+namespace VehicleRentalMarketplace.Models
 {
     public class User
     {
         [Key]
         public int UserID { get; set; }
 
-        [Required]
+        [ForeignKey("Role")]
         public int RoleID { get; set; }
 
-        [ForeignKey(nameof(RoleID))]
-        public Role Role { get; set; } = null!;
-
         [Required]
-        [MaxLength(50)]
+        [StringLength(100)]
         public string Username { get; set; } = string.Empty;
 
         [Required]
-        public string Password { get; set; } = string.Empty;
+        [StringLength(255)]
+        public string PasswordHash { get; set; } = string.Empty; // Store hashed password
 
+        [StringLength(3000)]
         public string? Token { get; set; }
 
         [Required]
-        [EmailAddress]
-        public string Email { get; set; } = string.Empty;
-
+        [StringLength(100)]
         public string Firstname { get; set; } = string.Empty;
-        public string Lastname { get; set; } = string.Empty;
-        public string PhoneNumber { get; set; } = string.Empty;
-        public string Address { get; set; } = string.Empty;
-        public string City { get; set; } = string.Empty;
-        public string State { get; set; } = string.Empty;
 
-        public bool isActive { get; set; } = true;
+        [Required]
+        [StringLength(100)]
+        public string Lastname { get; set; } = string.Empty;
+
+        [StringLength(20)]
+        public string? PhoneNumber { get; set; }
+
+        [StringLength(255)]
+        public string? Address { get; set; }
+
+        [StringLength(100)]
+        public string? City { get; set; }
+
+        [StringLength(50)]
+        public string? State { get; set; }
+
+        [EmailAddress]
+        [StringLength(255)]
+        public string? Email { get; set; } // Add email field
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
+        public bool IsActive { get; set; } = true;
+
+        // Navigation properties
+        public virtual Role? Role { get; set; }
+        public virtual ICollection<Asset> Assets { get; set; } = new List<Asset>();
+        public virtual ICollection<Purchase> Purchases { get; set; } = new List<Purchase>();
+        public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 }
