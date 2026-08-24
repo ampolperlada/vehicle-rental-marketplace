@@ -62,7 +62,8 @@ namespace VehicleRentalMarketplace.Api.Migrations
                 name: "Assets",
                 columns: table => new
                 {
-                    AssetID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AssetID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     UserID = table.Column<int>(type: "int", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -72,7 +73,7 @@ namespace VehicleRentalMarketplace.Api.Migrations
                     SalePrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ApprovalStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ApprovedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ApprovedBy = table.Column<int>(type: "int", nullable: true),
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -80,6 +81,12 @@ namespace VehicleRentalMarketplace.Api.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Assets", x => x.AssetID);
+                    table.ForeignKey(
+                        name: "FK_Assets_Users_ApprovedBy",
+                        column: x => x.ApprovedBy,
+                        principalTable: "Users",
+                        principalColumn: "UserID",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Assets_Users_UserID",
                         column: x => x.UserID,
@@ -92,8 +99,9 @@ namespace VehicleRentalMarketplace.Api.Migrations
                 name: "Bookings",
                 columns: table => new
                 {
-                    BookingID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    AssetID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    BookingID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AssetID = table.Column<int>(type: "int", nullable: false),
                     RenterID = table.Column<int>(type: "int", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -125,8 +133,9 @@ namespace VehicleRentalMarketplace.Api.Migrations
                 name: "Purchases",
                 columns: table => new
                 {
-                    PurchaseID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    AssetID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PurchaseID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AssetID = table.Column<int>(type: "int", nullable: false),
                     BuyerID = table.Column<int>(type: "int", nullable: false),
                     PurchasePrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -154,9 +163,10 @@ namespace VehicleRentalMarketplace.Api.Migrations
                 name: "Payments",
                 columns: table => new
                 {
-                    PaymentID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    BookingID = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    PurchaseID = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    PaymentID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    BookingID = table.Column<int>(type: "int", nullable: true),
+                    PurchaseID = table.Column<int>(type: "int", nullable: true),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     PaymentMethod = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PaymentStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -184,11 +194,12 @@ namespace VehicleRentalMarketplace.Api.Migrations
                 name: "Reviews",
                 columns: table => new
                 {
-                    ReviewID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    AssetID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ReviewID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AssetID = table.Column<int>(type: "int", nullable: false),
                     UserID = table.Column<int>(type: "int", nullable: false),
-                    BookingID = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    PurchaseID = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    BookingID = table.Column<int>(type: "int", nullable: true),
+                    PurchaseID = table.Column<int>(type: "int", nullable: true),
                     Rating = table.Column<int>(type: "int", nullable: false),
                     Comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -231,6 +242,11 @@ namespace VehicleRentalMarketplace.Api.Migrations
                     { 2, "Vendor" },
                     { 3, "Customer" }
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Assets_ApprovedBy",
+                table: "Assets",
+                column: "ApprovedBy");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Assets_UserID",

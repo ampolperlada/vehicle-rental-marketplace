@@ -7,18 +7,14 @@ using VehicleRentalMarketplace.Api.Services.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services
 builder.Services.AddControllers();
 
-// Register DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register JWT Service
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
-// Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["Secret"] ?? throw new Exception("JWT Secret not configured");
 
@@ -46,9 +42,10 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+DbInitializer.Seed(app);
+
 app.UseHttpsRedirection();
 
-// IMPORTANT: Order matters!
 app.UseAuthentication();
 app.UseAuthorization();
 

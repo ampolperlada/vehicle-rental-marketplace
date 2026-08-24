@@ -1,61 +1,75 @@
 using Microsoft.EntityFrameworkCore;
 using VehicleRentalMarketplace.Api.Data;
 using VehicleRentalMarketplace.Api.Models;
-using VehicleRentalMarketplace.Api.Services.Interfaces; 
 
 namespace VehicleRentalMarketplace.Api.Services
 {
-    public class AssetService : IAssetService
+    public class AssetService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext db;
 
         public AssetService(ApplicationDbContext context)
         {
-            _context = context;
+            db = context;
         }
+
         public async Task<IEnumerable<Asset>> GetAllAssetsAsync()
         {
-            return await _context.Assets
-                .Include(a => a.UserID)
-                .AsNoTracking()
-                .ToListAsync();
+            return await db.Assets.ToListAsync();
         }
-        public async Task<Asset?> GetAssetByIdAsync(Guid assetId)
+
+        public async Task<Asset?> GetAssetByIdAsync(int id)
         {
-            return await _context.Assets
-            .Include(a => a.UserID)
-            .FirstOrDefaultAsync(a => a.AssetID == assetId);
+            return await db.Assets.FirstOrDefaultAsync(a => a.AssetID == id);
         }
+
         public async Task<Asset> CreateAssetAsync(Asset asset)
         {
-            asset.AssetID = Guid.NewGuid();
-            asset.CreatedAt = DateTime.UtcNow;
-
-            _context.Assets.Add(asset);
-            await _context.SaveChangesAsync();
-
+            db.Assets.Add(asset);
+            await db.SaveChangesAsync();
             return asset;
         }
 
-        public async Task<bool> UpdateAssetAsync(Asset asset)
+        public async Task<bool> UpdateAssetAsync(int id, Asset asset)
         {
-            var existingAsset = await _context.Assets.FindAsync(asset.AssetID);
-            if (existingAsset == null) return false;
+            if (id != asset.AssetID)
+            {
+                return false;
+            }
 
-            _context.Entry(existingAsset).CurrentValues.SetValues(asset);
-            await _context.SaveChangesAsync();
+            db.Entry(asset).State = EntityState.Modified;
 
+            try
+            {
+                await db.SaveChangesAsync();
+                return true;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!AssetExists(id))
+                {
+                    return false;
+                }
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteAssetAsync(int id)
+        {
+            var asset = await db.Assets.FindAsync(id);
+            if (asset == null)
+            {
+                return false;
+            }
+
+            db.Assets.Remove(asset);
+            await db.SaveChangesAsync();
             return true;
         }
-        public async Task<bool> DeleteAssetAsync(Guid assetId)
+
+        private bool AssetExists(int id)
         {
-            var asset = await _context.Assets.FindAsync(assetId);
-            if(asset == null) return false;
-
-            _context.Assets.Remove(asset);
-            await _context.SaveChangesAsync();
-
-            return true;
+            return db.Assets.Any(e => e.AssetID == id);
         }
     }
 }

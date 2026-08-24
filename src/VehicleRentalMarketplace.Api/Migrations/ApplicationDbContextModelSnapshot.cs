@@ -24,16 +24,18 @@ namespace VehicleRentalMarketplace.Api.Migrations
 
             modelBuilder.Entity("VehicleRentalMarketplace.Api.Models.Asset", b =>
                 {
-                    b.Property<Guid>("AssetID")
+                    b.Property<int>("AssetID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AssetID"));
 
                     b.Property<string>("ApprovalStatus")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("ApprovedBy")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("ApprovedBy")
+                        .HasColumnType("int");
 
                     b.Property<string>("Category")
                         .IsRequired()
@@ -76,6 +78,8 @@ namespace VehicleRentalMarketplace.Api.Migrations
 
                     b.HasKey("AssetID");
 
+                    b.HasIndex("ApprovedBy");
+
                     b.HasIndex("UserID");
 
                     b.ToTable("Assets");
@@ -83,12 +87,14 @@ namespace VehicleRentalMarketplace.Api.Migrations
 
             modelBuilder.Entity("VehicleRentalMarketplace.Api.Models.Booking", b =>
                 {
-                    b.Property<Guid>("BookingID")
+                    b.Property<int>("BookingID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
 
-                    b.Property<Guid>("AssetID")
-                        .HasColumnType("uniqueidentifier");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingID"));
+
+                    b.Property<int>("AssetID")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -129,15 +135,17 @@ namespace VehicleRentalMarketplace.Api.Migrations
 
             modelBuilder.Entity("VehicleRentalMarketplace.Api.Models.Payment", b =>
                 {
-                    b.Property<Guid>("PaymentID")
+                    b.Property<int>("PaymentID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentID"));
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<Guid?>("BookingID")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("BookingID")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("PaidAt")
                         .HasColumnType("datetime2");
@@ -150,8 +158,8 @@ namespace VehicleRentalMarketplace.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("PurchaseID")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("PurchaseID")
+                        .HasColumnType("int");
 
                     b.Property<string>("TransactionID")
                         .IsRequired()
@@ -168,12 +176,14 @@ namespace VehicleRentalMarketplace.Api.Migrations
 
             modelBuilder.Entity("VehicleRentalMarketplace.Api.Models.Purchase", b =>
                 {
-                    b.Property<Guid>("PurchaseID")
+                    b.Property<int>("PurchaseID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
 
-                    b.Property<Guid>("AssetID")
-                        .HasColumnType("uniqueidentifier");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PurchaseID"));
+
+                    b.Property<int>("AssetID")
+                        .HasColumnType("int");
 
                     b.Property<int>("BuyerID")
                         .HasColumnType("int");
@@ -202,15 +212,17 @@ namespace VehicleRentalMarketplace.Api.Migrations
 
             modelBuilder.Entity("VehicleRentalMarketplace.Api.Models.Review", b =>
                 {
-                    b.Property<Guid>("ReviewID")
+                    b.Property<int>("ReviewID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
 
-                    b.Property<Guid>("AssetID")
-                        .HasColumnType("uniqueidentifier");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReviewID"));
 
-                    b.Property<Guid?>("BookingID")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("AssetID")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BookingID")
+                        .HasColumnType("int");
 
                     b.Property<string>("Comment")
                         .IsRequired()
@@ -219,8 +231,8 @@ namespace VehicleRentalMarketplace.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("PurchaseID")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("PurchaseID")
+                        .HasColumnType("int");
 
                     b.Property<int>("Rating")
                         .HasColumnType("int");
@@ -345,11 +357,18 @@ namespace VehicleRentalMarketplace.Api.Migrations
 
             modelBuilder.Entity("VehicleRentalMarketplace.Api.Models.Asset", b =>
                 {
+                    b.HasOne("VehicleRentalMarketplace.Api.Models.User", "Admin")
+                        .WithMany()
+                        .HasForeignKey("ApprovedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("VehicleRentalMarketplace.Api.Models.User", "Owner")
                         .WithMany()
                         .HasForeignKey("UserID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Admin");
 
                     b.Navigation("Owner");
                 });

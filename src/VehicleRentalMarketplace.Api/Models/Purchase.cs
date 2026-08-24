@@ -6,10 +6,10 @@ namespace VehicleRentalMarketplace.Api.Models
     public class Purchase
     {
         [Key]
-        public Guid PurchaseID { get; set; } = Guid.NewGuid();
+        public int PurchaseID { get; set; }
 
         [Required]
-        public Guid AssetID { get; set; }  
+        public int AssetID { get; set; }  
 
         [ForeignKey(nameof(AssetID))]
         public Asset Asset { get; set; } = null!;

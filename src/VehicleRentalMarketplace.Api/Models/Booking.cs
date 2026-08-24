@@ -6,10 +6,10 @@ namespace VehicleRentalMarketplace.Api.Models
     public class Booking
     {
         [Key]
-        public Guid BookingID { get; set; } = Guid.NewGuid();
+        public int BookingID { get; set; }
 
         [Required]
-        public Guid AssetID { get; set; } 
+        public int AssetID { get; set; } 
 
         [ForeignKey(nameof(AssetID))]
         public Asset Asset { get; set; } = null!;

@@ -6,10 +6,10 @@ namespace VehicleRentalMarketplace.Api.Models
     public class Review
     {
         [Key]
-        public Guid ReviewID { get; set; } = Guid.NewGuid();
+        public int ReviewID { get; set; }
 
         [Required]
-        public Guid AssetID { get; set; }
+        public int AssetID { get; set; }
 
         [ForeignKey(nameof(AssetID))]
         public Asset Asset { get; set; } = null!;
@@ -20,12 +20,12 @@ namespace VehicleRentalMarketplace.Api.Models
         [ForeignKey(nameof(UserID))]
         public User User { get; set; } = null!;
 
-        public Guid? BookingID { get; set; }
+        public int? BookingID { get; set; }
 
         [ForeignKey(nameof(BookingID))]
         public Booking? Booking { get; set; }
 
-        public Guid? PurchaseID { get; set; }
+        public int? PurchaseID { get; set; }
 
         [ForeignKey(nameof(PurchaseID))]
         public Purchase? Purchase { get; set; }
