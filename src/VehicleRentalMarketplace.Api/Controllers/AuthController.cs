@@ -1,50 +1,28 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using VehicleRentalMarketplace.Api.Dtos.Auth;
-using VehicleRentalMarketplace.Data;
-using VehicleRentalMarketplace.Models;
-using VehicleRentalMarketplace.Services;
+using VehicleRentalMarketplace.Api.Services.Auth;
 
-namespace VehicleRentalMarketplace.Controllers
+namespace VehicleRentalMarketplace.Api.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly AuthService _authService;
-        private readonly ApplicationDbContext _context;
+        private readonly IAuthService _authService;
 
-        public AuthController(AuthService authService, ApplicationDbContext context)
+        public AuthController(IAuthService authService)
         {
             _authService = authService;
-            _context = context;
         }
 
-        // POST: api/auth/login
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             try
             {
-                var user = await _authService.Authenticate(loginDto.Username, loginDto.Password);
-
-                if (user == null)
-                    return Unauthorized(new { message = "Invalid username or password" });
-
-                var response = new AuthResponseDTO
-                {
-                    UserID = user.UserID,
-                    Username = user.Username,
-                    Firstname = user.Firstname,
-                    Lastname = user.Lastname,
-                    Email = user.Email ?? "",
-                    Role = user.Role?.RoleName ?? "User",
-                    Token = user.Token ?? "",
-                    ExpiresAt = DateTime.UtcNow.AddMinutes(60),
-                    IsActive = user.IsActive
-                };
-
+                var response = await _authService.RegisterAsync(request);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -53,51 +31,30 @@ namespace VehicleRentalMarketplace.Controllers
             }
         }
 
-        // POST: api/auth/register
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDTO registerDto)
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             try
             {
-                // ... validation code ...
-
-                var user = await _authService.Register(registerDto);
-
-                var response = new AuthResponseDTO
-                {
-                    UserID = user.UserID,
-                    Username = user.Username,
-                    Firstname = user.Firstname,
-                    Lastname = user.Lastname,
-                    Email = user.Email ?? "",
-                    Role = user.Role?.RoleName ?? "User",
-                    Token = user.Token ?? "",
-                    ExpiresAt = DateTime.UtcNow.AddMinutes(60),
-                    IsActive = user.IsActive
-                };
-
-                // Change this line
-                return Ok(response);  // Instead of CreatedAtAction
-                                      // OR add the GetUserById method above
+                var response = await _authService.LoginAsync(request);
+                return Ok(response);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
         }
 
-        // Add this at the bottom of your AuthController class
-        [HttpGet("users/{id}")]
-        private async Task<ActionResult<User>> GetUserById(int id)
+        [Authorize]
+        [HttpGet("test")]
+        public IActionResult TestAuth()
         {
-            var user = await _context.Users
-                .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.UserID == id);
-
-            if (user == null)
-                return NotFound();
-
-            return user;
+            return Ok(new
+            {
+                message = "You are authenticated!",
+                user = User.Identity?.Name,
+                role = User.FindFirst(ClaimTypes.Role)?.Value
+            });
         }
     }
 }

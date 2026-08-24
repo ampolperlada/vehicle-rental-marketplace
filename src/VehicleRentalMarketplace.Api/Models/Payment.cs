@@ -1,35 +1,30 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace VehicleRentalMarketplace.Models
+namespace VehicleRentalMarketplace.Api.Models
 {
     public class Payment
     {
         [Key]
-        public int PaymentID { get; set; }
+        public Guid PaymentID { get; set; } = Guid.NewGuid();
 
-        [ForeignKey("Asset")]
-        public int? BookingID { get; set; }
+        public Guid? BookingID { get; set; }
 
-        [ForeignKey("Purchase")]
-        public int? PurchasedID { get; set; }
+        [ForeignKey(nameof(BookingID))]
+        public Booking? Booking { get; set; }
 
-        [Required]
-        [StringLength(50)]
-        public string PaymentMethod { get; set; } = string.Empty; // Credit Card, PayPal, etc.
+        public Guid? PurchaseID { get; set; }
 
-        [Required]
-        [StringLength(20)]
-        public string Status { get; set; } = "Pending"; // Pending, Completed, Failed
+        [ForeignKey(nameof(PurchaseID))]
+        public Purchase? Purchase { get; set; }
 
-        [StringLength(100)]
-        public string? TransactionNumber { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Amount { get; set; }
 
-        public DateTime? PaidAt { get; set; }
+        public string PaymentMethod { get; set; } = "Card"; // cash, bank transfer or something
+        public string PaymentStatus { get; set; } = "Peding"; // pending, success, failed
+        public string TransactionID { get; set; } = string.Empty;
 
-        // Navigation properties
-        public virtual Asset? Asset { get; set; }
-        public virtual Purchase? Purchase { get; set; }
-        public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public DateTime PaidAt { get; set; } = DateTime.UtcNow;
     }
 }

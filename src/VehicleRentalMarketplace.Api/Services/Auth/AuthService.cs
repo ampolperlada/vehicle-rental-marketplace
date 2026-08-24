@@ -1,115 +1,107 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using VehicleRentalMarketplace.Data;
-using VehicleRentalMarketplace.Models;
+using VehicleRentalMarketplace.Api.Data;
 using VehicleRentalMarketplace.Api.Dtos.Auth;
+using VehicleRentalMarketplace.Api.Helpers;
+using VehicleRentalMarketplace.Api.Models;
 
-namespace VehicleRentalMarketplace.Services
+namespace VehicleRentalMarketplace.Api.Services.Auth
 {
-    public class AuthService
+    public class AuthService : IAuthService
     {
         private readonly ApplicationDbContext _context;
-        private readonly TokenService _tokenService;
+        private readonly IJwtService _jwtService;
 
-        public AuthService(ApplicationDbContext context, TokenService tokenService)
+        public AuthService(ApplicationDbContext context, IJwtService jwtService)
         {
             _context = context;
-            _tokenService = tokenService;
+            _jwtService = jwtService;
         }
 
-        public async Task<User?> Authenticate(string username, string password)
+        public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
         {
-            var user = await _context.Users
-                .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
-
-            if (user == null)
-                return null;
-
-            if (!VerifyPassword(password, user.PasswordHash))
-                return null;
-
-            // Generate token but DON'T save to database
-            // Just return the user with the token
-            user.Token = _tokenService.GenerateToken(user);
-
-            // Remove this line - don't save token to DB
-            // await _context.SaveChangesAsync();
-
-            return user;
-        }
-
-        public async Task<User> Register(RegisterDTO registerDto)
-        {
-            var existingUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == registerDto.Username);
-
+            // Check if email exists
+            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
             if (existingUser != null)
-                throw new InvalidOperationException("Username already exists");
+                throw new Exception("Email already registered");
 
-            int roleId = registerDto.RoleID ?? 2;
+            // Check if username exists
+            var existingUsername = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+            if (existingUsername != null)
+                throw new Exception("Username already taken");
 
-            var role = await _context.Roles.FindAsync(roleId);
-            if (role == null)
-                throw new InvalidOperationException("Invalid role");
+            // Get Customer role
+            var customerRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Customer");
+            if (customerRole == null)
+                throw new Exception("Default role not found");
 
+            // Create user
             var user = new User
             {
-                Username = registerDto.Username,
-                // This line calls HashPassword - make sure it exists!
-                PasswordHash = HashPassword(registerDto.Password),
-                Firstname = registerDto.Firstname,
-                Lastname = registerDto.Lastname,
-                Email = registerDto.Email,
-                PhoneNumber = registerDto.PhoneNumber,
-                Address = registerDto.Address,
-                City = registerDto.City,
-                State = registerDto.State,
-                RoleID = roleId,
+                Username = request.Username,
+                Email = request.Email,
+                Password = PasswordHelper.HashPassword(request.Password),
+                Firstname = request.Firstname,
+                Lastname = request.Lastname,
+                PhoneNumber = request.PhoneNumber,
+                Address = request.Address,
+                City = request.City,
+                State = request.State,
+                RoleID = customerRole.RoleID,
+                isActive = true,
                 CreatedAt = DateTime.UtcNow,
-                IsActive = true
+                UpdatedAt = DateTime.UtcNow
             };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            user.Token = _tokenService.GenerateToken(user);
-            await _context.SaveChangesAsync();
-
-            return user;
-        }
-
-        public async Task<bool> Logout(int userId)
-        {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
-                return false;
-
-            user.Token = null;
-            user.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<User?> GetUserByToken(string token)
-        {
-            return await _context.Users
+            // Get user with role
+            var userWithRole = await _context.Users
                 .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.Token == token);
+                .FirstOrDefaultAsync(u => u.UserID == user.UserID);
+
+            // Generate token
+            var token = _jwtService.GenerateToken(userWithRole!);
+
+            return new AuthResponse
+            {
+                Token = token,
+                Email = user.Email,
+                Username = user.Username,
+                Role = userWithRole!.Role.RoleName,
+                UserID = user.UserID,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(60)
+            };
         }
 
-        private string HashPassword(string password)
+        public async Task<AuthResponse> LoginAsync(LoginRequest request)
         {
-            // For development - simple Base64 encoding
-            return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(password));
-        }
+            // Find user
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Username == request.Username);
 
-        /// <summary>
-        /// Verifies a password against a stored hash
-        /// </summary>
-        private bool VerifyPassword(string password, string hash)
-        {
-            // For development - compare Base64 encoded values
-            return HashPassword(password) == hash;
+            if (user == null)
+                throw new Exception("Invalid username or password");
+
+            if (!user.isActive)
+                throw new Exception("Account is deactivated");
+
+            if (!PasswordHelper.VerifyPassword(request.Password, user.Password))
+                throw new Exception("Invalid username or password");
+
+            // Generate token
+            var token = _jwtService.GenerateToken(user);
+
+            return new AuthResponse
+            {
+                Token = token,
+                Email = user.Email,
+                Username = user.Username,
+                Role = user.Role.RoleName,
+                UserID = user.UserID,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(60)
+            };
         }
     }
 }

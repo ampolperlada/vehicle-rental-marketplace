@@ -1,29 +1,40 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace VehicleRentalMarketplace.Models
+namespace VehicleRentalMarketplace.Api.Models
 {
     public class Review
     {
         [Key]
-        public int ReviewerID { get; set; }
+        public Guid ReviewID { get; set; } = Guid.NewGuid();
 
-        [ForeignKey("Payment")]
-        public int PaymentID { get; set; }
+        [Required]
+        public Guid AssetID { get; set; }
+
+        [ForeignKey(nameof(AssetID))]
+        public Asset Asset { get; set; } = null!;
+
+        [Required]
+        public int UserID { get; set; }
+
+        [ForeignKey(nameof(UserID))]
+        public User User { get; set; } = null!;
+
+        public Guid? BookingID { get; set; }
+
+        [ForeignKey(nameof(BookingID))]
+        public Booking? Booking { get; set; }
+
+        public Guid? PurchaseID { get; set; }
+
+        [ForeignKey(nameof(PurchaseID))]
+        public Purchase? Purchase { get; set; }
 
         [Range(1, 5)]
         public int Rating { get; set; }
 
-        [StringLength(1000)]
-        public string? Comment { get; set; }
-
-        [ForeignKey("User")]
-        public int? UserID { get; set; }
+        public string Comment { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        // Navigation properties
-        public virtual Payment? Payment { get; set; }
-        public virtual User? User { get; set; }
     }
 }
