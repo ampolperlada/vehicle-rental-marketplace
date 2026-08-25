@@ -17,7 +17,7 @@ namespace VehicleRentalMarketplace.Api.Services.Auth
             _jwtService = jwtService;
         }
 
-        public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
+        public async Task<RegisterResponse> RegisterAsync(RegisterRequest request)
         {
             // Check if email exists
             var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
@@ -29,9 +29,9 @@ namespace VehicleRentalMarketplace.Api.Services.Auth
             if (existingUsername != null)
                 throw new Exception("Username already taken");
 
-            // Get Customer role
-            var customerRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Customer");
-            if (customerRole == null)
+            // Get default role (Renter)
+            var defaultRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Renter");
+            if (defaultRole == null)
                 throw new Exception("Default role not found");
 
             // Create user
@@ -46,8 +46,8 @@ namespace VehicleRentalMarketplace.Api.Services.Auth
                 Address = request.Address,
                 City = request.City,
                 State = request.State,
-                RoleID = customerRole.RoleID,
-                isActive = true,
+                RoleID = defaultRole.RoleID,
+                IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -60,17 +60,16 @@ namespace VehicleRentalMarketplace.Api.Services.Auth
                 .Include(u => u.Role)
                 .FirstOrDefaultAsync(u => u.UserID == user.UserID);
 
-            // Generate token
-            var token = _jwtService.GenerateToken(userWithRole!);
-
-            return new AuthResponse
+            // Return RegisterResponse WITHOUT token
+            return new RegisterResponse
             {
-                Token = token,
-                Email = user.Email,
-                Username = user.Username,
-                Role = userWithRole!.Role.RoleName,
                 UserID = user.UserID,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(60)
+                Username = user.Username,
+                Email = user.Email,
+                Firstname = user.Firstname,
+                Lastname = user.Lastname,
+                Role = userWithRole!.Role.RoleName,
+                CreatedAt = user.CreatedAt
             };
         }
 
@@ -84,13 +83,13 @@ namespace VehicleRentalMarketplace.Api.Services.Auth
             if (user == null)
                 throw new Exception("Invalid username or password");
 
-            if (!user.isActive)
+            if (!user.IsActive)
                 throw new Exception("Account is deactivated");
 
             if (!PasswordHelper.VerifyPassword(request.Password, user.Password))
                 throw new Exception("Invalid username or password");
 
-            // Generate token
+            // Generate token (ONLY in login)
             var token = _jwtService.GenerateToken(user);
 
             return new AuthResponse
