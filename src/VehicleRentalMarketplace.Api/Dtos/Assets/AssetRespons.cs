@@ -7,8 +7,10 @@
         public string OwnerName { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public string Category { get; set; } = string.Empty;
-        public string ListingType { get; set; } = string.Empty;
+        public int CategoryId { get; set; }
+        public string CategoryName { get; set; } = string.Empty;
+        public int ListingTypeId { get; set; }
+        public string ListingTypeName { get; set; } = string.Empty;
         public decimal? DailyRate { get; set; }
         public decimal? SalePrice { get; set; }
         public string Location { get; set; } = string.Empty;

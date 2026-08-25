@@ -4,8 +4,8 @@
     {
         public int AssetID { get; set; }
         public string Title { get; set; } = string.Empty;
-        public string Category { get; set; } = string.Empty;
-        public string ListingType { get; set; } = string.Empty;
+        public string CategoryName { get; set; } = string.Empty;
+        public string ListingTypeName { get; set; } = string.Empty;
         public decimal? DailyRate { get; set; }
         public decimal? SalePrice { get; set; }
         public string Location { get; set; } = string.Empty;

@@ -18,6 +18,8 @@ namespace VehicleRentalMarketplace.Api.Data
         public DbSet<Payment> Payments { get; set; } = null!;
         public DbSet<Review> Reviews { get; set; } = null!;
         public DbSet<Purchase> Purchases { get; set; } = null!;
+        public DbSet<Category> Categories { get; set; } = null!;
+        public DbSet<ListingType> ListingTypes { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

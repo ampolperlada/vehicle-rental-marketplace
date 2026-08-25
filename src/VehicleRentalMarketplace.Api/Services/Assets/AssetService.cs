@@ -19,6 +19,8 @@ namespace VehicleRentalMarketplace.Api.Services
         {
             var assets = await _context.Assets
                 .Include(a => a.Owner)
+                .Include(a => a.Category)
+                .Include(a => a.ListingType)
                 .Where(a => a.IsActive && a.IsAvailable)
                 .OrderByDescending(a => a.CreatedAt)
                 .ToListAsync();
@@ -27,8 +29,8 @@ namespace VehicleRentalMarketplace.Api.Services
             {
                 AssetID = a.AssetID,
                 Title = a.Title,
-                Category = a.Category,
-                ListingType = a.ListingType,
+                CategoryName = a.Category?.Name ?? string.Empty,
+                ListingTypeName = a.ListingType?.Name ?? string.Empty,
                 DailyRate = a.DailyRate,
                 SalePrice = a.SalePrice,
                 Location = a.Location,
@@ -42,6 +44,8 @@ namespace VehicleRentalMarketplace.Api.Services
         {
             var asset = await _context.Assets
                 .Include(a => a.Owner)
+                .Include(a => a.Category)
+                .Include(a => a.ListingType)
                 .FirstOrDefaultAsync(a => a.AssetID == id && a.IsActive);
 
             if (asset == null)
@@ -54,8 +58,10 @@ namespace VehicleRentalMarketplace.Api.Services
                 OwnerName = $"{asset.Owner?.Firstname} {asset.Owner?.Lastname}".Trim(),
                 Title = asset.Title,
                 Description = asset.Description,
-                Category = asset.Category,
-                ListingType = asset.ListingType,
+                CategoryId = asset.CategoryId,
+                CategoryName = asset.Category?.Name ?? string.Empty,
+                ListingTypeId = asset.ListingTypeId,
+                ListingTypeName = asset.ListingType?.Name ?? string.Empty,
                 DailyRate = asset.DailyRate,
                 SalePrice = asset.SalePrice,
                 Location = asset.Location,
@@ -69,7 +75,9 @@ namespace VehicleRentalMarketplace.Api.Services
         {
             var assets = await _context.Assets
                 .Include(a => a.Owner)
-                .Where(a => a.UserID == userId)
+                .Include(a => a.Category)
+                .Include(a => a.ListingType)
+                .Where(a => a.UserID == userId && a.IsActive)
                 .OrderByDescending(a => a.CreatedAt)
                 .ToListAsync();
 
@@ -77,13 +85,12 @@ namespace VehicleRentalMarketplace.Api.Services
             {
                 AssetID = a.AssetID,
                 Title = a.Title,
-                Category = a.Category,
-                ListingType = a.ListingType,
+                CategoryName = a.Category?.Name ?? string.Empty,
+                ListingTypeName = a.ListingType?.Name ?? string.Empty,
                 DailyRate = a.DailyRate,
                 SalePrice = a.SalePrice,
                 Location = a.Location,
                 IsAvailable = a.IsAvailable,
-                IsActive = a.IsActive,
                 OwnerName = $"{a.Owner?.Firstname} {a.Owner?.Lastname}".Trim(),
                 CreatedAt = a.CreatedAt
             });
@@ -93,6 +100,8 @@ namespace VehicleRentalMarketplace.Api.Services
         {
             var assets = await _context.Assets
                 .Include(a => a.Owner)
+                .Include(a => a.Category)
+                .Include(a => a.ListingType)
                 .Where(a => a.UserID == userId && a.IsActive)
                 .OrderByDescending(a => a.CreatedAt)
                 .ToListAsync();
@@ -101,8 +110,8 @@ namespace VehicleRentalMarketplace.Api.Services
             {
                 AssetID = a.AssetID,
                 Title = a.Title,
-                Category = a.Category,
-                ListingType = a.ListingType,
+                CategoryName = a.Category?.Name ?? string.Empty,
+                ListingTypeName = a.ListingType?.Name ?? string.Empty,
                 DailyRate = a.DailyRate,
                 SalePrice = a.SalePrice,
                 Location = a.Location,
@@ -116,17 +125,28 @@ namespace VehicleRentalMarketplace.Api.Services
         {
             ValidateAssetRequest(request);
 
+            // Verify Category exists
+            var category = await _context.Categories.FindAsync(request.CategoryId);
+            if (category == null)
+                throw new Exception("Invalid Category. Please select a valid category.");
+
+            // Verify ListingType exists
+            var listingType = await _context.ListingTypes.FindAsync(request.ListingTypeId);
+            if (listingType == null)
+                throw new Exception("Invalid ListingType. Please select a valid listing type.");
+
             var asset = new Asset
             {
                 UserID = userId,
                 Title = request.Title,
                 Description = request.Description,
-                Category = request.Category,
-                ListingType = request.ListingType,
+                CategoryId = request.CategoryId,
+                ListingTypeId = request.ListingTypeId,
                 DailyRate = request.DailyRate,
                 SalePrice = request.SalePrice,
                 Location = request.Location,
                 IsAvailable = true,
+                IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -136,6 +156,8 @@ namespace VehicleRentalMarketplace.Api.Services
 
             var createdAsset = await _context.Assets
                 .Include(a => a.Owner)
+                .Include(a => a.Category)
+                .Include(a => a.ListingType)
                 .FirstOrDefaultAsync(a => a.AssetID == asset.AssetID);
 
             return MapToAssetResponse(createdAsset!);
@@ -144,7 +166,10 @@ namespace VehicleRentalMarketplace.Api.Services
         public async Task<AssetResponse> UpdateAssetAsync(int id, int userId, AssetRequest request)
         {
             var asset = await _context.Assets
-                .FirstOrDefaultAsync(a => a.AssetID == id);
+                .Include(a => a.Owner)
+                .Include(a => a.Category)
+                .Include(a => a.ListingType)
+                .FirstOrDefaultAsync(a => a.AssetID == id && a.IsActive);
 
             if (asset == null)
                 throw new Exception("Asset not found");
@@ -158,10 +183,20 @@ namespace VehicleRentalMarketplace.Api.Services
 
             ValidateAssetRequest(request);
 
+            // Verify Category exists
+            var category = await _context.Categories.FindAsync(request.CategoryId);
+            if (category == null)
+                throw new Exception("Invalid Category. Please select a valid category.");
+
+            // Verify ListingType exists
+            var listingType = await _context.ListingTypes.FindAsync(request.ListingTypeId);
+            if (listingType == null)
+                throw new Exception("Invalid ListingType. Please select a valid listing type.");
+
             asset.Title = request.Title;
             asset.Description = request.Description;
-            asset.Category = request.Category;
-            asset.ListingType = request.ListingType;
+            asset.CategoryId = request.CategoryId;
+            asset.ListingTypeId = request.ListingTypeId;
             asset.DailyRate = request.DailyRate;
             asset.SalePrice = request.SalePrice;
             asset.Location = request.Location;
@@ -171,6 +206,8 @@ namespace VehicleRentalMarketplace.Api.Services
 
             var updatedAsset = await _context.Assets
                 .Include(a => a.Owner)
+                .Include(a => a.Category)
+                .Include(a => a.ListingType)
                 .FirstOrDefaultAsync(a => a.AssetID == id);
 
             return MapToAssetResponse(updatedAsset!);
@@ -179,7 +216,7 @@ namespace VehicleRentalMarketplace.Api.Services
         public async Task<bool> DeleteAssetAsync(int id, int userId)
         {
             var asset = await _context.Assets
-                .FirstOrDefaultAsync(a => a.AssetID == id);
+                .FirstOrDefaultAsync(a => a.AssetID == id && a.IsActive);
 
             if (asset == null)
                 throw new Exception("Asset not found");
@@ -201,12 +238,14 @@ namespace VehicleRentalMarketplace.Api.Services
         public async Task<AssetResponse> RestoreAssetAsync(int id, int userId)
         {
             var asset = await _context.Assets
+                .Include(a => a.Owner)
+                .Include(a => a.Category)
+                .Include(a => a.ListingType)
                 .FirstOrDefaultAsync(a => a.AssetID == id);
 
             if (asset == null)
                 throw new Exception("Asset not found");
 
-            // Check ownership or admin
             if (asset.UserID != userId)
             {
                 var user = await _context.Users.FindAsync(userId);
@@ -214,7 +253,6 @@ namespace VehicleRentalMarketplace.Api.Services
                     throw new Exception("You are not authorized to restore this asset");
             }
 
-            // Restore
             asset.IsActive = true;
             asset.UpdatedAt = DateTime.UtcNow;
 
@@ -222,6 +260,8 @@ namespace VehicleRentalMarketplace.Api.Services
 
             var restoredAsset = await _context.Assets
                 .Include(a => a.Owner)
+                .Include(a => a.Category)
+                .Include(a => a.ListingType)
                 .FirstOrDefaultAsync(a => a.AssetID == id);
 
             return MapToAssetResponse(restoredAsset!);
@@ -229,13 +269,24 @@ namespace VehicleRentalMarketplace.Api.Services
 
         private void ValidateAssetRequest(AssetRequest request)
         {
-            if (!new[] { "Rent", "Sale", "Both" }.Contains(request.ListingType))
-                throw new Exception("ListingType must be 'Rent', 'Sale', or 'Both'");
+            // Check if CategoryId is valid (will be validated in database)
+            if (request.CategoryId <= 0)
+                throw new Exception("CategoryId is required.");
 
-            if ((request.ListingType == "Rent" || request.ListingType == "Both") && (!request.DailyRate.HasValue || request.DailyRate <= 0))
+            // Check if ListingTypeId is valid (will be validated in database)
+            if (request.ListingTypeId <= 0)
+                throw new Exception("ListingTypeId is required.");
+
+            // Validate based on ListingTypeId (checking via database will be done later)
+            // For now, we check the request values
+            var listingType = _context.ListingTypes.Find(request.ListingTypeId);
+            if (listingType == null)
+                throw new Exception("Invalid ListingType.");
+
+            if ((listingType.Name == "Rent" || listingType.Name == "Both") && (!request.DailyRate.HasValue || request.DailyRate <= 0))
                 throw new Exception("DailyRate is required and must be greater than 0 for Rent or Both");
 
-            if ((request.ListingType == "Sale" || request.ListingType == "Both") && (!request.SalePrice.HasValue || request.SalePrice <= 0))
+            if ((listingType.Name == "Sale" || listingType.Name == "Both") && (!request.SalePrice.HasValue || request.SalePrice <= 0))
                 throw new Exception("SalePrice is required and must be greater than 0 for Sale or Both");
         }
 
@@ -248,8 +299,10 @@ namespace VehicleRentalMarketplace.Api.Services
                 OwnerName = $"{asset.Owner?.Firstname} {asset.Owner?.Lastname}".Trim(),
                 Title = asset.Title,
                 Description = asset.Description,
-                Category = asset.Category,
-                ListingType = asset.ListingType,
+                CategoryId = asset.CategoryId,
+                CategoryName = asset.Category?.Name ?? string.Empty,
+                ListingTypeId = asset.ListingTypeId,
+                ListingTypeName = asset.ListingType?.Name ?? string.Empty,
                 DailyRate = asset.DailyRate,
                 SalePrice = asset.SalePrice,
                 Location = asset.Location,

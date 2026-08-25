@@ -9,9 +9,8 @@ namespace VehicleRentalMarketplace.Api.Dtos.Asset
 
         [Required]
         public string Description { get; set; } = string.Empty;
-
-        public string Category { get; set; } = "Vehicle";
-        public string ListingType { get; set; } = "Rent";
+        public int CategoryId { get; set; } 
+        public int ListingTypeId { get; set; }  
         public decimal? DailyRate { get; set; }
         public decimal? SalePrice { get; set; }
 
