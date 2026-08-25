@@ -13,38 +13,79 @@ namespace VehicleRentalMarketplace.Api.Data
 
             context.Database.Migrate();
 
+            // Seed Roles (Admin, Renter, Buyer)
             if (!context.Roles.Any())
             {
                 context.Roles.AddRange(
-                    new Role { RoleName = "User" },  
-                    new Role { RoleName = "Admin" }
+                    new Role { RoleName = "Admin" },
+                    new Role { RoleName = "Renter" },
+                    new Role { RoleName = "Buyer" }
                 );
                 context.SaveChanges();
             }
 
-            var userRole = context.Roles.FirstOrDefault(r => r.RoleName == "User" || r.RoleName == "Customer");
-            var adminRole = context.Roles.FirstOrDefault(r => r.RoleName == "Admin");
+            // Get roles
+            var ownerRole = context.Roles.FirstOrDefault(r => r.RoleName == "Admin");
+            var renterRole = context.Roles.FirstOrDefault(r => r.RoleName == "Renter");
+            var buyerRole = context.Roles.FirstOrDefault(r => r.RoleName == "Buyer");
 
-            if (!context.Users.Any() && userRole != null && adminRole != null)
+            // Seed Users
+            if (!context.Users.Any())
             {
-                context.Users.AddRange(
-                    new User
+                var users = new List<User>();
+
+                // Admin User
+                if (ownerRole != null)
+                {
+                    users.Add(new User
                     {
-                        Username = "ampol",
-                        Password = PasswordHelper.HashPassword("Password123!"),                        Email = "ampol@vehiclerental.com",
+                        Username = "Owners",
+                        Password = PasswordHelper.HashPassword("Password123!"),
+                        Email = "owners@vehiclerental.com",
                         Firstname = "Ampol",
-                        Lastname = "Admin",
-                        RoleID = adminRole.RoleID 
-                    },
-                    new User
+                        Lastname = "Owners",
+                        RoleID = ownerRole.RoleID,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    });
+                }
+
+                // Renter User
+                if (renterRole != null)
+                {
+                    users.Add(new User
                     {
-                        Username = "luwigie",
-                        Password = PasswordHelper.HashPassword("Password123!"),                        Email = "luwigie@vehiclerental.com",
-                        Firstname = "Luwigie",
+                        Username = "renter1",
+                        Password = PasswordHelper.HashPassword("Password123!"),
+                        Email = "renter@vehiclerental.com",
+                        Firstname = "Renter",
                         Lastname = "User",
-                        RoleID = userRole.RoleID 
-                    }
-                );
+                        RoleID = renterRole.RoleID,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    });
+                }
+
+                // Buyer User
+                if (buyerRole != null)
+                {
+                    users.Add(new User
+                    {
+                        Username = "buyer1",
+                        Password = PasswordHelper.HashPassword("Password123!"),
+                        Email = "buyer@vehiclerental.com",
+                        Firstname = "Buyer",
+                        Lastname = "User",
+                        RoleID = buyerRole.RoleID,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    });
+                }
+
+                context.Users.AddRange(users);
                 context.SaveChanges();
             }
         }

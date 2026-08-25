@@ -1,106 +1,146 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using VehicleRentalMarketplace.Api.Data;
-using VehicleRentalMarketplace.Api.Models;
+using System.Security.Claims;
+using VehicleRentalMarketplace.Api.Dtos.Asset;
+using VehicleRentalMarketplace.Api.Services.Interfaces;
 
 namespace VehicleRentalMarketplace.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class AssetsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IAssetService _assetService;
 
-        public AssetsController(ApplicationDbContext context)
+        public AssetsController(IAssetService assetService)
         {
-            _context = context;
+            _assetService = assetService;
         }
 
-
+        // GET: api/assets
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Asset>>> GetAssets()
+        public async Task<IActionResult> GetAssets()
         {
-            return await _context.Assets.ToListAsync();
+            var assets = await _assetService.GetAllAssetsAsync();
+            return Ok(assets);
         }
 
-
-
+        // GET: api/assets/{id}
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<Asset>> GetAsset(int id)
+        public async Task<IActionResult> GetAsset(int id)
         {
-            var asset = await _context.Assets.FindAsync(id);
-
-            if (asset == null)
-            {
-                return NotFound();
-            }
-
-            return asset;
-        }
-
-
-        [HttpPost]
-        public async Task<ActionResult<Asset>> CreateAsset([FromBody] Asset asset)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            _context.Assets.Add(asset);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetAsset), new { id = asset.AssetID }, asset);
-        }
-
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateAsset(int id, [FromBody] Asset asset)
-        {
-            if (id != asset.AssetID)
-            {
-                return BadRequest("ID mismatch between URL and request body.");
-            }
-
-            _context.Entry(asset).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                var asset = await _assetService.GetAssetByIdAsync(id);
+                return Ok(asset);
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                if (!AssetExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound(new { message = ex.Message });
             }
-
-            return NoContent();
         }
 
+        // GET: api/assets/my-assets
+        [HttpGet("my-assets")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetMyAssets()
+        {
+            try
+            {
+                var userId = GetUserId();
+                var assets = await _assetService.GetMyAssetsAsync(userId);
+                return Ok(assets);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
+        // GET: api/assets/user/{userId}
+        [HttpGet("user/{userId:int}")]
+        public async Task<IActionResult> GetAssetsByUser(int userId)
+        {
+            var assets = await _assetService.GetAssetsByUserAsync(userId);
+            return Ok(assets);
+        }
+
+        // POST: api/assets
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateAsset([FromBody] AssetRequest request)
+        {
+            try
+            {
+                var userId = GetUserId();
+                var asset = await _assetService.CreateAssetAsync(userId, request);
+                return CreatedAtAction(nameof(GetAsset), new { id = asset.AssetID }, asset);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // PUT: api/assets/{id}
+        [HttpPut("{id:int}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateAsset(int id, [FromBody] AssetRequest request)
+        {
+            try
+            {
+                var userId = GetUserId();
+                var asset = await _assetService.UpdateAssetAsync(id, userId, request);
+                return Ok(asset);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // DELETE: api/assets/{id}
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteAsset(int id)
         {
-            var asset = await _context.Assets.FindAsync(id);
-            if (asset == null)
+            try
             {
-                return NotFound();
+                var userId = GetUserId();
+                await _assetService.DeleteAssetAsync(id, userId);
+                return Ok(new { message = "Asset deleted successfully" });
             }
-
-            _context.Assets.Remove(asset);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
-        private bool AssetExists(int id)
+        // RESTORE: api/assets/{id}/restore
+        [HttpPut("{id:int}/restore")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RestoreAsset(int id)
         {
-            return _context.Assets.Any(e => e.AssetID == id);
+            try
+            {
+                var userId = GetUserId();
+                var asset = await _assetService.RestoreAssetAsync(id, userId);
+                return Ok(new { message = "Asset restored successfully", asset });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        private int GetUserId()
+        {
+            var userIdClaim = User.FindFirst("UserID")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                throw new UnauthorizedAccessException("User ID not found in token");
+
+            return int.Parse(userIdClaim);
         }
     }
 }

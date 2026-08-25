@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VehicleRentalMarketplace.Api.Data;
 
@@ -11,9 +12,11 @@ using VehicleRentalMarketplace.Api.Data;
 namespace VehicleRentalMarketplace.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260825033603_UpdateDailyRateNullable")]
+    partial class UpdateDailyRateNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -29,6 +32,13 @@ namespace VehicleRentalMarketplace.Api.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AssetID"));
+
+                    b.Property<string>("ApprovalStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ApprovedBy")
+                        .HasColumnType("int");
 
                     b.Property<string>("Category")
                         .IsRequired()
@@ -75,6 +85,8 @@ namespace VehicleRentalMarketplace.Api.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("AssetID");
+
+                    b.HasIndex("ApprovedBy");
 
                     b.HasIndex("UserID");
 
@@ -336,11 +348,18 @@ namespace VehicleRentalMarketplace.Api.Migrations
 
             modelBuilder.Entity("VehicleRentalMarketplace.Api.Models.Asset", b =>
                 {
+                    b.HasOne("VehicleRentalMarketplace.Api.Models.User", "Admin")
+                        .WithMany()
+                        .HasForeignKey("ApprovedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("VehicleRentalMarketplace.Api.Models.User", "Owner")
                         .WithMany()
                         .HasForeignKey("UserID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Admin");
 
                     b.Navigation("Owner");
                 });

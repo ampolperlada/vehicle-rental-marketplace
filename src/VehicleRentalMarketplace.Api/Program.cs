@@ -1,11 +1,15 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.Text.Json;
 using VehicleRentalMarketplace.Api.Data;
+using VehicleRentalMarketplace.Api.Services;
 using VehicleRentalMarketplace.Api.Services.Auth;
+using VehicleRentalMarketplace.Api.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 builder.Services.AddControllers();
 
@@ -14,6 +18,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IAssetService, AssetService>();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["Secret"] ?? throw new Exception("JWT Secret not configured");
@@ -36,6 +41,25 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
         ClockSkew = TimeSpan.Zero
     };
+    options.Events = new JwtBearerEvents
+    {
+        OnChallenge = context =>
+        {
+            context.HandleResponse();
+            context.Response.StatusCode = 401;
+            context.Response.ContentType = "application/json";
+            var response = new { message = "Unauthorized. Please login first to access this resource." };
+            return context.Response.WriteAsync(JsonSerializer.Serialize(response));
+        },
+        OnForbidden = context =>
+        {
+            context.Response.StatusCode = 403;
+            context.Response.ContentType = "application/json";
+            var response = new { message = "You do not have permission to perform this action. Only Admin/Owner can post assets." };
+            return context.Response.WriteAsync(JsonSerializer.Serialize(response));
+        }
+    };
+
 });
 
 builder.Services.AddAuthorization();
