@@ -4,7 +4,10 @@
     {
         public int BookingID { get; set; }
         public string AssetTitle { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public int NumberofDays { get; set; }

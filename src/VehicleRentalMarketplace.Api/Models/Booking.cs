@@ -34,17 +34,14 @@ namespace VehicleRentalMarketplace.Api.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal TotalRentalPrice { get; set; }
 
-        // Status: "FullyPaid", "Cancelled", "Completed"
+        // Status: "FullyPaid", "Cancelled"
         public string Status { get; set; } = "FullyPaid";
 
-        // Payment details
         [Column(TypeName = "decimal(18,2)")]
         public decimal AmountPaid { get; set; }
 
         public string? PaymentReference { get; set; }
         public DateTime? PaymentDate { get; set; }
-
-        // Cancellation
         public string? CancellationReason { get; set; }
         public DateTime? CancelledAt { get; set; }
     }
