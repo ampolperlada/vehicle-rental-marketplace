@@ -3,8 +3,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
 namespace VehicleRentalMarketplace.Api.Migrations
 {
     /// <inheritdoc />
@@ -13,6 +11,40 @@ namespace VehicleRentalMarketplace.Api.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Categories",
+                columns: table => new
+                {
+                    CategoryId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Categories", x => x.CategoryId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ListingTypes",
+                columns: table => new
+                {
+                    ListingTypeId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ListingTypes", x => x.ListingTypeId);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Roles",
                 columns: table => new
@@ -43,9 +75,9 @@ namespace VehicleRentalMarketplace.Api.Migrations
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     City = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     State = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    isActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -66,26 +98,31 @@ namespace VehicleRentalMarketplace.Api.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserID = table.Column<int>(type: "int", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ListingType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DailyRate = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    DailyRate = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     SalePrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ApprovalStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ApprovedBy = table.Column<int>(type: "int", nullable: true),
+                    Location = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false),
+                    CategoryId = table.Column<int>(type: "int", nullable: false),
+                    ListingTypeId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Assets", x => x.AssetID);
                     table.ForeignKey(
-                        name: "FK_Assets_Users_ApprovedBy",
-                        column: x => x.ApprovedBy,
-                        principalTable: "Users",
-                        principalColumn: "UserID",
+                        name: "FK_Assets_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "CategoryId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Assets_ListingTypes_ListingTypeId",
+                        column: x => x.ListingTypeId,
+                        principalTable: "ListingTypes",
+                        principalColumn: "ListingTypeId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Assets_Users_UserID",
@@ -102,15 +139,21 @@ namespace VehicleRentalMarketplace.Api.Migrations
                     BookingID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     AssetID = table.Column<int>(type: "int", nullable: false),
-                    RenterID = table.Column<int>(type: "int", nullable: false),
+                    UserID = table.Column<int>(type: "int", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     NumberofDays = table.Column<int>(type: "int", nullable: false),
                     DailyRate = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     TotalRentalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RejectionReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    AmountPaid = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PaymentReference = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CancellationReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CancelledAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -122,8 +165,8 @@ namespace VehicleRentalMarketplace.Api.Migrations
                         principalColumn: "AssetID",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Bookings_Users_RenterID",
-                        column: x => x.RenterID,
+                        name: "FK_Bookings_Users_UserID",
+                        column: x => x.UserID,
                         principalTable: "Users",
                         principalColumn: "UserID",
                         onDelete: ReferentialAction.Restrict);
@@ -233,20 +276,15 @@ namespace VehicleRentalMarketplace.Api.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
-            migrationBuilder.InsertData(
-                table: "Roles",
-                columns: new[] { "RoleID", "RoleName" },
-                values: new object[,]
-                {
-                    { 1, "Admin" },
-                    { 2, "Vendor" },
-                    { 3, "Customer" }
-                });
+            migrationBuilder.CreateIndex(
+                name: "IX_Assets_CategoryId",
+                table: "Assets",
+                column: "CategoryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Assets_ApprovedBy",
+                name: "IX_Assets_ListingTypeId",
                 table: "Assets",
-                column: "ApprovedBy");
+                column: "ListingTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Assets_UserID",
@@ -259,9 +297,9 @@ namespace VehicleRentalMarketplace.Api.Migrations
                 column: "AssetID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Bookings_RenterID",
+                name: "IX_Bookings_UserID",
                 table: "Bookings",
-                column: "RenterID");
+                column: "UserID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_BookingID",
@@ -326,6 +364,12 @@ namespace VehicleRentalMarketplace.Api.Migrations
 
             migrationBuilder.DropTable(
                 name: "Assets");
+
+            migrationBuilder.DropTable(
+                name: "Categories");
+
+            migrationBuilder.DropTable(
+                name: "ListingTypes");
 
             migrationBuilder.DropTable(
                 name: "Users");

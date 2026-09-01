@@ -24,35 +24,32 @@ namespace VehicleRentalMarketplace.Api.Data
                     new Category { Name = "SUV", Description = "Sports Utility Vehicles" },
                     new Category { Name = "Luxury", Description = "Luxury and premium vehicles" }
                 );
-                context.SaveChanges();
+                context.SaveChanges();  // <-- No await
             }
 
-            // Seed ListingTypes
+            // Seed ListingTypes (Rent and Sale only)
             if (!context.ListingTypes.Any())
             {
                 context.ListingTypes.AddRange(
                     new ListingType { Name = "Rent", Description = "Available for rent only" },
-                    new ListingType { Name = "Sale", Description = "Available for sale only" },
-                    new ListingType { Name = "Both", Description = "Available for both rent and sale" }
+                    new ListingType { Name = "Sale", Description = "Available for sale only" }
                 );
-                context.SaveChanges();
+                context.SaveChanges(); 
             }
 
-            // Seed Roles
+            // Seed Roles (Admin and Customer only)
             if (!context.Roles.Any())
             {
                 context.Roles.AddRange(
                     new Role { RoleName = "Admin" },
-                    new Role { RoleName = "Renter" },
-                    new Role { RoleName = "Buyer" }
+                    new Role { RoleName = "Customer" }
                 );
-                context.SaveChanges();
+                context.SaveChanges();  
             }
 
             // Get roles
             var adminRole = context.Roles.FirstOrDefault(r => r.RoleName == "Admin");
-            var renterRole = context.Roles.FirstOrDefault(r => r.RoleName == "Renter");
-            var buyerRole = context.Roles.FirstOrDefault(r => r.RoleName == "Buyer");
+            var customerRole = context.Roles.FirstOrDefault(r => r.RoleName == "Customer");
 
             // Get categories
             var vehicleCategory = context.Categories.FirstOrDefault(c => c.Name == "Vehicle");
@@ -61,7 +58,6 @@ namespace VehicleRentalMarketplace.Api.Data
             // Get listing types
             var rentType = context.ListingTypes.FirstOrDefault(l => l.Name == "Rent");
             var saleType = context.ListingTypes.FirstOrDefault(l => l.Name == "Sale");
-            var bothType = context.ListingTypes.FirstOrDefault(l => l.Name == "Both");
 
             // Seed Users
             if (!context.Users.Any())
@@ -85,34 +81,17 @@ namespace VehicleRentalMarketplace.Api.Data
                     });
                 }
 
-                // Renter User
-                if (renterRole != null)
+                // Customer User
+                if (customerRole != null)
                 {
                     users.Add(new User
                     {
-                        Username = "renter1",
+                        Username = "customer1",
                         Password = PasswordHelper.HashPassword("Password123!"),
-                        Email = "renter@vehiclerental.com",
-                        Firstname = "Renter",
+                        Email = "customer@vehiclerental.com",
+                        Firstname = "Customer",
                         Lastname = "User",
-                        RoleID = renterRole.RoleID,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    });
-                }
-
-                // Buyer User
-                if (buyerRole != null)
-                {
-                    users.Add(new User
-                    {
-                        Username = "buyer1",
-                        Password = PasswordHelper.HashPassword("Password123!"),
-                        Email = "buyer@vehiclerental.com",
-                        Firstname = "Buyer",
-                        Lastname = "User",
-                        RoleID = buyerRole.RoleID,
+                        RoleID = customerRole.RoleID,
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
@@ -120,7 +99,7 @@ namespace VehicleRentalMarketplace.Api.Data
                 }
 
                 context.Users.AddRange(users);
-                context.SaveChanges();
+                context.SaveChanges();  
             }
 
             // Seed Sample Assets (if none)
@@ -162,7 +141,7 @@ namespace VehicleRentalMarketplace.Api.Data
                             UpdatedAt = DateTime.UtcNow
                         }
                     );
-                    context.SaveChanges();
+                    context.SaveChanges(); 
                 }
             }
         }

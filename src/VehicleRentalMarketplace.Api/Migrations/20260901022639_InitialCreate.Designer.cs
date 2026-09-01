@@ -12,8 +12,8 @@ using VehicleRentalMarketplace.Api.Data;
 namespace VehicleRentalMarketplace.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260825021318_UpdateAssets")]
-    partial class UpdateAssets
+    [Migration("20260901022639_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,21 +33,13 @@ namespace VehicleRentalMarketplace.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AssetID"));
 
-                    b.Property<string>("ApprovalStatus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ApprovedBy")
+                    b.Property<int>("CategoryId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal>("DailyRate")
+                    b.Property<decimal?>("DailyRate")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Description")
@@ -61,9 +53,8 @@ namespace VehicleRentalMarketplace.Api.Migrations
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
-                    b.Property<string>("ListingType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("ListingTypeId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Location")
                         .IsRequired()
@@ -86,7 +77,9 @@ namespace VehicleRentalMarketplace.Api.Migrations
 
                     b.HasKey("AssetID");
 
-                    b.HasIndex("ApprovedBy");
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("ListingTypeId");
 
                     b.HasIndex("UserID");
 
@@ -101,8 +94,17 @@ namespace VehicleRentalMarketplace.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingID"));
 
+                    b.Property<decimal>("AmountPaid")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("AssetID")
                         .HasColumnType("int");
+
+                    b.Property<string>("CancellationReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -113,14 +115,17 @@ namespace VehicleRentalMarketplace.Api.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<int>("NumberofDays")
                         .HasColumnType("int");
 
-                    b.Property<string>("RejectionReason")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime?>("PaymentDate")
+                        .HasColumnType("datetime2");
 
-                    b.Property<int>("RenterID")
-                        .HasColumnType("int");
+                    b.Property<string>("PaymentReference")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -132,13 +137,79 @@ namespace VehicleRentalMarketplace.Api.Migrations
                     b.Property<decimal>("TotalRentalPrice")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserID")
+                        .HasColumnType("int");
+
                     b.HasKey("BookingID");
 
                     b.HasIndex("AssetID");
 
-                    b.HasIndex("RenterID");
+                    b.HasIndex("UserID");
 
                     b.ToTable("Bookings");
+                });
+
+            modelBuilder.Entity("VehicleRentalMarketplace.Api.Models.Category", b =>
+                {
+                    b.Property<int>("CategoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("CategoryId");
+
+                    b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("VehicleRentalMarketplace.Api.Models.ListingType", b =>
+                {
+                    b.Property<int>("ListingTypeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ListingTypeId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ListingTypeId");
+
+                    b.ToTable("ListingTypes");
                 });
 
             modelBuilder.Entity("VehicleRentalMarketplace.Api.Models.Payment", b =>
@@ -348,10 +419,17 @@ namespace VehicleRentalMarketplace.Api.Migrations
 
             modelBuilder.Entity("VehicleRentalMarketplace.Api.Models.Asset", b =>
                 {
-                    b.HasOne("VehicleRentalMarketplace.Api.Models.User", "Admin")
+                    b.HasOne("VehicleRentalMarketplace.Api.Models.Category", "Category")
                         .WithMany()
-                        .HasForeignKey("ApprovedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("VehicleRentalMarketplace.Api.Models.ListingType", "ListingType")
+                        .WithMany()
+                        .HasForeignKey("ListingTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("VehicleRentalMarketplace.Api.Models.User", "Owner")
                         .WithMany()
@@ -359,7 +437,9 @@ namespace VehicleRentalMarketplace.Api.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Admin");
+                    b.Navigation("Category");
+
+                    b.Navigation("ListingType");
 
                     b.Navigation("Owner");
                 });
@@ -372,15 +452,15 @@ namespace VehicleRentalMarketplace.Api.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("VehicleRentalMarketplace.Api.Models.User", "Renter")
+                    b.HasOne("VehicleRentalMarketplace.Api.Models.User", "User")
                         .WithMany()
-                        .HasForeignKey("RenterID")
+                        .HasForeignKey("UserID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Asset");
 
-                    b.Navigation("Renter");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("VehicleRentalMarketplace.Api.Models.Payment", b =>
