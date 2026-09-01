@@ -3,22 +3,22 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VehicleRentalMarketplace.Api.Models
 {
-    public class Booking
+    public class Booking : BaseModel
     {
         [Key]
         public int BookingID { get; set; }
 
         [Required]
-        public int AssetID { get; set; } 
+        public int AssetID { get; set; }
 
         [ForeignKey(nameof(AssetID))]
         public Asset Asset { get; set; } = null!;
 
         [Required]
-        public int RenterID { get; set; } 
+        public int UserID { get; set; } 
 
-        [ForeignKey(nameof(RenterID))]
-        public User Renter { get; set; } = null!;
+        [ForeignKey(nameof(UserID))]
+        public User User { get; set; } = null!; 
 
         [Required]
         public DateTime StartDate { get; set; }
@@ -34,8 +34,18 @@ namespace VehicleRentalMarketplace.Api.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal TotalRentalPrice { get; set; }
 
-        public string Status { get; set; } = "Pending";
-        public string? RejectionReason { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        // Status: "FullyPaid", "Cancelled", "Completed"
+        public string Status { get; set; } = "FullyPaid";
+
+        // Payment details
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal AmountPaid { get; set; }
+
+        public string? PaymentReference { get; set; }
+        public DateTime? PaymentDate { get; set; }
+
+        // Cancellation
+        public string? CancellationReason { get; set; }
+        public DateTime? CancelledAt { get; set; }
     }
 }

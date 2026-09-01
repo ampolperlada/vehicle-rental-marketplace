@@ -19,6 +19,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAssetService, AssetService>();
+builder.Services.AddScoped<IBookingService, BookingService>();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["Secret"] ?? throw new Exception("JWT Secret not configured");
@@ -55,7 +56,7 @@ builder.Services.AddAuthentication(options =>
         {
             context.Response.StatusCode = 403;
             context.Response.ContentType = "application/json";
-            var response = new { message = "You do not have permission to perform this action. Only Admin/Owner can post assets." };
+            var response = new { message = "You do not have permission to perform this action." };
             return context.Response.WriteAsync(JsonSerializer.Serialize(response));
         }
     };
