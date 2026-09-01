@@ -35,6 +35,7 @@ namespace VehicleRentalMarketplace.Api.Services
                 SalePrice = a.SalePrice,
                 Location = a.Location,
                 IsAvailable = a.IsAvailable,
+                IsActive = a.IsActive,
                 OwnerName = $"{a.Owner?.Firstname} {a.Owner?.Lastname}".Trim(),
                 CreatedAt = a.CreatedAt
             });
@@ -77,7 +78,7 @@ namespace VehicleRentalMarketplace.Api.Services
                 .Include(a => a.Owner)
                 .Include(a => a.Category)
                 .Include(a => a.ListingType)
-                .Where(a => a.UserID == userId && a.IsActive)
+                .Where(a => a.UserID == userId)
                 .OrderByDescending(a => a.CreatedAt)
                 .ToListAsync();
 
@@ -91,6 +92,7 @@ namespace VehicleRentalMarketplace.Api.Services
                 SalePrice = a.SalePrice,
                 Location = a.Location,
                 IsAvailable = a.IsAvailable,
+                IsActive = a.IsActive,
                 OwnerName = $"{a.Owner?.Firstname} {a.Owner?.Lastname}".Trim(),
                 CreatedAt = a.CreatedAt
             });
@@ -116,6 +118,7 @@ namespace VehicleRentalMarketplace.Api.Services
                 SalePrice = a.SalePrice,
                 Location = a.Location,
                 IsAvailable = a.IsAvailable,
+                IsActive = a.IsActive,
                 OwnerName = $"{a.Owner?.Firstname} {a.Owner?.Lastname}".Trim(),
                 CreatedAt = a.CreatedAt
             });
@@ -125,12 +128,10 @@ namespace VehicleRentalMarketplace.Api.Services
         {
             ValidateAssetRequest(request);
 
-            // Verify Category exists
             var category = await _context.Categories.FindAsync(request.CategoryId);
             if (category == null)
                 throw new Exception("Invalid Category. Please select a valid category.");
 
-            // Verify ListingType exists
             var listingType = await _context.ListingTypes.FindAsync(request.ListingTypeId);
             if (listingType == null)
                 throw new Exception("Invalid ListingType. Please select a valid listing type.");
@@ -165,20 +166,27 @@ namespace VehicleRentalMarketplace.Api.Services
 
         public async Task<AssetResponse> UpdateAssetAsync(int id, int userId, AssetRequest request)
         {
+            // Get asset without IsActive filter
             var asset = await _context.Assets
                 .Include(a => a.Owner)
                 .Include(a => a.Category)
                 .Include(a => a.ListingType)
-                .FirstOrDefaultAsync(a => a.AssetID == id && a.IsActive);
+                .FirstOrDefaultAsync(a => a.AssetID == id);
 
+            // Check if asset exists
             if (asset == null)
                 throw new Exception("Asset not found");
 
+            // Check if asset is deleted
+            if (!asset.IsActive)
+                throw new Exception("Asset is deleted and cannot be updated");
+
+            // Check if user is the owner or admin
             if (asset.UserID != userId)
             {
                 var user = await _context.Users.FindAsync(userId);
                 if (user?.Role?.RoleName != "Admin")
-                    throw new Exception("You are not the owner of this asset");
+                    throw new Exception("You are not authorized to update this asset");
             }
 
             ValidateAssetRequest(request);
@@ -193,6 +201,7 @@ namespace VehicleRentalMarketplace.Api.Services
             if (listingType == null)
                 throw new Exception("Invalid ListingType. Please select a valid listing type.");
 
+            // Update fields
             asset.Title = request.Title;
             asset.Description = request.Description;
             asset.CategoryId = request.CategoryId;
@@ -212,29 +221,35 @@ namespace VehicleRentalMarketplace.Api.Services
 
             return MapToAssetResponse(updatedAsset!);
         }
-
         public async Task<bool> DeleteAssetAsync(int id, int userId)
         {
+            // Get asset without IsActive filter para malaman kung deleted na
             var asset = await _context.Assets
-                .FirstOrDefaultAsync(a => a.AssetID == id && a.IsActive);
+                .FirstOrDefaultAsync(a => a.AssetID == id);
 
+            // Check if asset exists
             if (asset == null)
                 throw new Exception("Asset not found");
 
+            // Check if already deleted
+            if (!asset.IsActive)
+                throw new Exception("Asset is already deleted");
+
+            // Check if user is the owner or admin
             if (asset.UserID != userId)
             {
                 var user = await _context.Users.FindAsync(userId);
                 if (user?.Role?.RoleName != "Admin")
-                    throw new Exception("You are not the owner of this asset");
+                    throw new Exception("You are not authorized to delete this asset");
             }
 
+            // Soft delete
             asset.IsActive = false;
             asset.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return true;
         }
-
         public async Task<AssetResponse> RestoreAssetAsync(int id, int userId)
         {
             var asset = await _context.Assets
@@ -246,6 +261,11 @@ namespace VehicleRentalMarketplace.Api.Services
             if (asset == null)
                 throw new Exception("Asset not found");
 
+            // Check if already active
+            if (asset.IsActive)
+                throw new Exception("Asset is already active");
+
+            // Check if user is the owner or admin
             if (asset.UserID != userId)
             {
                 var user = await _context.Users.FindAsync(userId);
@@ -253,6 +273,7 @@ namespace VehicleRentalMarketplace.Api.Services
                     throw new Exception("You are not authorized to restore this asset");
             }
 
+            // Restore
             asset.IsActive = true;
             asset.UpdatedAt = DateTime.UtcNow;
 
@@ -266,28 +287,36 @@ namespace VehicleRentalMarketplace.Api.Services
 
             return MapToAssetResponse(restoredAsset!);
         }
-
         private void ValidateAssetRequest(AssetRequest request)
         {
-            // Check if CategoryId is valid (will be validated in database)
             if (request.CategoryId <= 0)
                 throw new Exception("CategoryId is required.");
 
-            // Check if ListingTypeId is valid (will be validated in database)
             if (request.ListingTypeId <= 0)
                 throw new Exception("ListingTypeId is required.");
 
-            // Validate based on ListingTypeId (checking via database will be done later)
-            // For now, we check the request values
             var listingType = _context.ListingTypes.Find(request.ListingTypeId);
             if (listingType == null)
                 throw new Exception("Invalid ListingType.");
 
-            if ((listingType.Name == "Rent" || listingType.Name == "Both") && (!request.DailyRate.HasValue || request.DailyRate <= 0))
-                throw new Exception("DailyRate is required and must be greater than 0 for Rent or Both");
-
-            if ((listingType.Name == "Sale" || listingType.Name == "Both") && (!request.SalePrice.HasValue || request.SalePrice <= 0))
-                throw new Exception("SalePrice is required and must be greater than 0 for Sale or Both");
+            if (listingType.Name == "Rent")
+            {
+                if (!request.DailyRate.HasValue || request.DailyRate <= 0)
+                    throw new Exception("DailyRate is required and must be greater than 0 for Rent");
+                if (request.SalePrice.HasValue)
+                    throw new Exception("SalePrice should be null for Rent-only listings");
+            }
+            else if (listingType.Name == "Sale")
+            {
+                if (!request.SalePrice.HasValue || request.SalePrice <= 0)
+                    throw new Exception("SalePrice is required and must be greater than 0 for Sale");
+                if (request.DailyRate.HasValue)
+                    throw new Exception("DailyRate should be null for Sale-only listings");
+            }
+            else
+            {
+                throw new Exception("ListingType must be 'Rent' or 'Sale'");
+            }
         }
 
         private AssetResponse MapToAssetResponse(Asset asset)

@@ -29,8 +29,8 @@ namespace VehicleRentalMarketplace.Api.Services.Auth
             if (existingUsername != null)
                 throw new Exception("Username already taken");
 
-            // Get default role (Renter)
-            var defaultRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Renter");
+            // Get default role (Customer)
+            var defaultRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Customer");
             if (defaultRole == null)
                 throw new Exception("Default role not found");
 
