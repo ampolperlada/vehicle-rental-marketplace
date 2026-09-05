@@ -20,11 +20,14 @@ namespace VehicleRentalMarketplace.Api.Models
         [ForeignKey(nameof(UserID))]
         public User User { get; set; } = null!;
 
+        //// review can happen after this 
+
         public int? BookingID { get; set; }
 
         [ForeignKey(nameof(BookingID))]
         public Booking? Booking { get; set; }
-
+        
+        // review can happen after this 
         public int? PurchaseID { get; set; }
 
         [ForeignKey(nameof(PurchaseID))]
