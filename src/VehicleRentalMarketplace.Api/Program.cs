@@ -7,6 +7,7 @@ using VehicleRentalMarketplace.Api.Data;
 using VehicleRentalMarketplace.Api.Services;
 using VehicleRentalMarketplace.Api.Services.Auth;
 using VehicleRentalMarketplace.Api.Services.Interfaces;
+using VehicleRentalMarketplace.Api.Services.Review;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,7 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAssetService, AssetService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IPurchaseService, PurchaseService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["Secret"] ?? throw new Exception("JWT Secret not configured");
