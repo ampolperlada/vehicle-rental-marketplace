@@ -74,6 +74,9 @@ DbInitializer.Seed(app);
 
 app.UseHttpsRedirection();
 
+// Use CORS - MUST BE BEFORE UseAuthorization
+app.UseCors("AllowReactApp");
+
 app.UseAuthentication();
 app.UseAuthorization();
 

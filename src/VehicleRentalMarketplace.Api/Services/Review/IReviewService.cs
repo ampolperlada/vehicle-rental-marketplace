@@ -6,12 +6,6 @@ namespace VehicleRentalMarketplace.Api.Services.Review
     {
         Task<IEnumerable<Models.Review>> GetReviewsByAssetAsync(int assetId);
 
-        Task<Models.Review> CreateReviewAsync(
-            int userId,
-            int assetId,
-            int? bookingId,
-            int? purchaseId,
-            int rating,
-            string comment);
+        Task<Models.Review> CreateReviewAsync(int userId,int assetId,int? bookingId,int? purchaseId,int rating,string comment);
     }
 }
