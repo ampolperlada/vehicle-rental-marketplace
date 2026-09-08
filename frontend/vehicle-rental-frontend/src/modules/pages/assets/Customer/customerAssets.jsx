@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { MapPin, Filter } from "lucide-react";
-import { getAllAssets } from "@/api/assets/assetsApi";
 import LoadingSpinner from "../../dashboard/_components/loadingSpinner";
+import { getAllAssets } from "@/api/assets/assetsApi";
 
 const CustomerAssets = () => {
   const [assets, setAssets] = useState([]);
