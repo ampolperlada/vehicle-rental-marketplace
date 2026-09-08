@@ -1,9 +1,13 @@
-// src/App.jsx
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pages/Login.tsx';
+import { BrowserRouter, useRoutes } from "react-router-dom";
+import routes from "@/routes";
+
+function AppRoutes() {
+  return useRoutes(routes);
+}
 
 function App() {
   return (
+<<<<<<< HEAD
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -11,6 +15,11 @@ function App() {
       <Route path="/" element={<Dashboard/>} />
       </Routes>
     </Router>
+=======
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+>>>>>>> 0bc83c56409e6571356f7566f0d73f2acaff06ff
   );
 }
 
