@@ -4,9 +4,8 @@ import CustomerDashboard from "./customer";
 
 const Dashboard = () => {
   const user = getUser();
-  const isAdmin = user?.role === "Admin";
 
-  if (isAdmin) {
+  if (user) {
     return <AdminDashboard />;
   }
 

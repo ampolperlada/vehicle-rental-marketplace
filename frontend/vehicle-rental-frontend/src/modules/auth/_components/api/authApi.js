@@ -106,9 +106,9 @@ export function isAuthenticated() {
   }
 }
 
-export function isAdmin() {
+export function isOwner() {
   const user = getUser();
-  return user?.role === "Admin";
+  return user?.role === "Owner";
 }
 
 export function logout() {

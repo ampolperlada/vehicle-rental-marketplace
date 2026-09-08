@@ -8,20 +8,23 @@ import {
   ShoppingBag,
   List,
 } from "lucide-react";
-import {
-  deleteAsset,
-  getMyAssets,
-  restoreAsset,
-  getAllAssets,
-} from "@/api/assets/assetsApi";
+
 import LoadingSpinner from "../../dashboard/_components/loadingSpinner";
+import CreateAssetModal from "./_components/modal/createModal";
+import {
+  getMyAssets,
+  getAllAssets,
+  deleteAsset,
+  restoreAsset,
+} from "@/api/assets/assetsApi";
 
 const OwnerAssets = () => {
   const [myAssets, setMyAssets] = useState([]);
   const [availableAssets, setAvailableAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState("my-listings"); // "my-listings" or "available"
+  const [activeTab, setActiveTab] = useState("my-listings");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchAssets = async () => {
@@ -29,7 +32,6 @@ const OwnerAssets = () => {
         setLoading(true);
         setError("");
 
-        // Fetch both my assets and all available assets
         const [myData, allData] = await Promise.all([
           getMyAssets(),
           getAllAssets(),
@@ -53,8 +55,13 @@ const OwnerAssets = () => {
 
     try {
       await deleteAsset(id);
-      const data = await getMyAssets();
-      setMyAssets(data);
+      // Refresh data manually
+      const [myData, allData] = await Promise.all([
+        getMyAssets(),
+        getAllAssets(),
+      ]);
+      setMyAssets(myData);
+      setAvailableAssets(allData);
     } catch (error) {
       console.error("Error deleting asset:", error);
       alert("Failed to delete asset. Please try again.");
@@ -64,8 +71,12 @@ const OwnerAssets = () => {
   const handleRestore = async (id) => {
     try {
       await restoreAsset(id);
-      const data = await getMyAssets();
-      setMyAssets(data);
+      const [myData, allData] = await Promise.all([
+        getMyAssets(),
+        getAllAssets(),
+      ]);
+      setMyAssets(myData);
+      setAvailableAssets(allData);
     } catch (error) {
       console.error("Error restoring asset:", error);
       alert("Failed to restore asset. Please try again.");
@@ -95,13 +106,13 @@ const OwnerAssets = () => {
             Manage your listings or browse available assets
           </p>
         </div>
-        <Link
-          to="/assets/create"
+        <button
+          onClick={() => setIsModalOpen(true)}
           className="inline-flex items-center gap-2 bg-black text-white px-5 py-2.5 rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium shadow-sm hover:shadow-md"
         >
           <PlusCircle className="w-4 h-4" />
           Post New Asset
-        </Link>
+        </button>
       </div>
 
       {/* Tabs */}
@@ -152,13 +163,13 @@ const OwnerAssets = () => {
                 : "Check back later for available assets to book."}
             </p>
             {activeTab === "my-listings" && (
-              <Link
-                to="/assets/create"
+              <button
+                onClick={() => setIsModalOpen(true)}
                 className="inline-flex items-center gap-2 bg-black text-white px-6 py-2.5 rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
               >
                 <PlusCircle className="w-4 h-4" />
                 Post Your First Asset
-              </Link>
+              </button>
             )}
           </div>
         </div>
@@ -243,7 +254,6 @@ const OwnerAssets = () => {
               {/* Action Buttons */}
               <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
                 {activeTab === "my-listings" ? (
-                  // My Listings actions
                   <>
                     <Link
                       to={`/assets/edit/${asset.assetID}`}
@@ -275,7 +285,6 @@ const OwnerAssets = () => {
                     )}
                   </>
                 ) : (
-                  // Available for Booking actions
                   <Link
                     to={`/assets/${asset.assetID}`}
                     className="w-full inline-flex items-center justify-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 font-medium bg-blue-50 hover:bg-blue-100 py-2 rounded-lg transition-colors"
@@ -289,6 +298,23 @@ const OwnerAssets = () => {
           ))}
         </div>
       )}
+
+      {/* Create Asset Modal */}
+      <CreateAssetModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => {
+          const refreshData = async () => {
+            const [myData, allData] = await Promise.all([
+              getMyAssets(),
+              getAllAssets(),
+            ]);
+            setMyAssets(myData);
+            setAvailableAssets(allData);
+          };
+          refreshData();
+        }}
+      />
     </div>
   );
 };
