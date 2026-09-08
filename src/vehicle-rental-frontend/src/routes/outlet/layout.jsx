@@ -2,17 +2,17 @@ import { useState } from "react";
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { User, LogOut, Settings, ChevronDown, Car } from "lucide-react";
 import { getUser, logout } from "@/modules/auth/_components/api/authApi";
+import { ROUTES } from "../constants/route.";
 
 const Layout = () => {
-  const user = getUser;
+  const user = getUser();
   const navigate = useNavigate();
-  const isAdmin = user?.role === "Admin";
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate(ROUTES.LOGIN);
   };
 
   return (
@@ -20,8 +20,7 @@ const Layout = () => {
       <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <Link to="/dashboard" className="flex items-center gap-2">
+            <Link to={ROUTES.DASHBOARD} className="flex items-center gap-2">
               <div className="p-2 bg-black rounded-xl">
                 <Car className="w-5 h-5 text-white" />
               </div>
@@ -33,7 +32,14 @@ const Layout = () => {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-6">
               <Link
-                to="/assets"
+                to={ROUTES.DASHBOARD}
+                className="text-gray-600 hover:text-gray-900 transition text-sm font-medium"
+              >
+                Dashboard
+              </Link>
+
+              <Link
+                to={ROUTES.ASSETS}
                 className="text-gray-600 hover:text-gray-900 transition text-sm font-medium"
               >
                 Assets
@@ -44,14 +50,6 @@ const Layout = () => {
               >
                 Bookings
               </Link>
-              {isAdmin && (
-                <Link
-                  to="/admin"
-                  className="text-gray-600 hover:text-gray-900 transition text-sm font-medium"
-                >
-                  Admin
-                </Link>
-              )}
             </div>
 
             {/* Profile Dropdown */}
@@ -97,6 +95,7 @@ const Layout = () => {
                       <Settings className="w-4 h-4" />
                       Settings
                     </Link>
+
                     <div className="border-t border-gray-100 my-1"></div>
                     <button
                       onClick={() => {

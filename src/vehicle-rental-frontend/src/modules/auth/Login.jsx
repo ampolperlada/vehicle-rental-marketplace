@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Car, Mail, Lock, User } from "lucide-react";
 import { login } from "./_components/api/authApi";
+import { ROUTES } from "@/routes/constants/route.";
 
-function Login() {
+const Login = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -29,7 +30,8 @@ function Login() {
           expiresAt: data.expiresAt,
         }),
       );
-      navigate(data.role === "Admin" ? "/admin/dashboard" : "/dashboard");
+      // Iisang dashboard lang
+      navigate(ROUTES.DASHBOARD);
     } catch (error) {
       setError(error.message || "Invalid credentials. Please try again.");
     } finally {
@@ -42,7 +44,7 @@ function Login() {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen  px-4 font-sans antialiased text-slate-900">
+    <div className="flex flex-col justify-center items-center min-h-screen px-4 font-sans antialiased text-slate-900">
       <div className="w-full max-w-[420px] flex flex-col items-center">
         {/* BRANDING SECTION */}
         <header className="text-center mb-8">
@@ -219,6 +221,6 @@ function Login() {
       </div>
     </div>
   );
-}
+};
 
 export default Login;
