@@ -7,7 +7,7 @@ namespace VehicleRentalMarketplace.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize] 
     public class PurchaseController : ControllerBase
     {
         private readonly IPurchaseService _purchaseService;
@@ -18,9 +18,8 @@ namespace VehicleRentalMarketplace.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Customer")]
-        public async Task<IActionResult> CreatePurchase(
-            [FromBody] PurchaseRequest request)
+        [Authorize(Roles = "Owner, Customer")]
+        public async Task<IActionResult> CreatePurchase([FromBody] PurchaseRequest request)
         {
             var userIdClaim = User.FindFirst("UserID");
 
@@ -41,33 +40,26 @@ namespace VehicleRentalMarketplace.Api.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new
-                {
-                    message = ex.Message
-                });
+                return BadRequest(new { message = ex.Message });
             }
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> GetAllPurchases()
         {
             var purchases = await _purchaseService.GetAllPurchasesAsync();
-
             return Ok(purchases);
         }
 
         [HttpGet("{id:int}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> GetPurchaseById(int id)
         {
             var purchase = await _purchaseService.GetPurchaseByIdAsync(id);
 
             if (purchase == null)
-                return NotFound(new
-                {
-                    message = "Purchase not found."
-                });
+                return NotFound(new { message = "Purchase not found." });
 
             return Ok(purchase);
         }

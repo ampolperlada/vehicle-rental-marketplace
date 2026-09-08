@@ -18,7 +18,7 @@ namespace VehicleRentalMarketplace.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Owner, Customer")]
         public async Task<IActionResult> CreateReview(
             [FromBody] ReviewRequest request)
         {
@@ -51,7 +51,7 @@ namespace VehicleRentalMarketplace.Api.Controllers
         }
 
         [HttpGet("asset/{assetId:int}")]
-        [AllowAnonymous]
+        [Authorize(Roles = "Owner, Customer")]
         public async Task<IActionResult> GetReviewsByAsset(int assetId)
         {
             var reviews = await _reviewService

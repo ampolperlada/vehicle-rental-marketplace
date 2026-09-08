@@ -20,6 +20,7 @@ namespace VehicleRentalMarketplace.Api.Controllers
 
         // GET: api/assets
         [HttpGet]
+        [Authorize(Roles = "Owner, Customer")]
         public async Task<IActionResult> GetAssets()
         {
             var assets = await _assetService.GetAllAssetsAsync();
@@ -28,6 +29,7 @@ namespace VehicleRentalMarketplace.Api.Controllers
 
         // GET: api/assets/{id}
         [HttpGet("{id:int}")]
+        [Authorize(Roles = "Owner, Customer")]
         public async Task<IActionResult> GetAsset(int id)
         {
             try
@@ -43,7 +45,7 @@ namespace VehicleRentalMarketplace.Api.Controllers
 
         // GET: api/assets/my-assets
         [HttpGet("my-assets")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> GetMyAssets()
         {
             try
@@ -60,6 +62,7 @@ namespace VehicleRentalMarketplace.Api.Controllers
 
         // GET: api/assets/user/{userId}
         [HttpGet("user/{userId:int}")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> GetAssetsByUser(int userId)
         {
             var assets = await _assetService.GetAssetsByUserAsync(userId);
@@ -68,7 +71,7 @@ namespace VehicleRentalMarketplace.Api.Controllers
 
         // POST: api/assets
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> CreateAsset([FromBody] AssetRequest request)
         {
             try
@@ -85,7 +88,7 @@ namespace VehicleRentalMarketplace.Api.Controllers
 
         // PUT: api/assets/{id}
         [HttpPut("{id:int}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> UpdateAsset(int id, [FromBody] AssetRequest request)
         {
             try
@@ -102,7 +105,7 @@ namespace VehicleRentalMarketplace.Api.Controllers
 
         // DELETE: api/assets/{id}
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> DeleteAsset(int id)
         {
             try
@@ -119,7 +122,7 @@ namespace VehicleRentalMarketplace.Api.Controllers
 
         // RESTORE: api/assets/{id}/restore
         [HttpPut("{id:int}/restore")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> RestoreAsset(int id)
         {
             try

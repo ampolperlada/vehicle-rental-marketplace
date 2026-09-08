@@ -13,7 +13,6 @@ namespace VehicleRentalMarketplace.Api.Data
 
             context.Database.Migrate();
 
-            // Seed Categories
             if (!context.Categories.Any())
             {
                 context.Categories.AddRange(
@@ -24,48 +23,41 @@ namespace VehicleRentalMarketplace.Api.Data
                     new Category { Name = "SUV", Description = "Sports Utility Vehicles" },
                     new Category { Name = "Luxury", Description = "Luxury and premium vehicles" }
                 );
-                context.SaveChanges();  // <-- No await
+                context.SaveChanges();
             }
 
-            // Seed ListingTypes (Rent and Sale only)
             if (!context.ListingTypes.Any())
             {
                 context.ListingTypes.AddRange(
                     new ListingType { Name = "Rent", Description = "Available for rent only" },
                     new ListingType { Name = "Sale", Description = "Available for sale only" }
                 );
-                context.SaveChanges(); 
+                context.SaveChanges();
             }
 
-            // Seed Roles (Admin and Customer only)
             if (!context.Roles.Any())
             {
                 context.Roles.AddRange(
-                    new Role { RoleName = "Admin" },
+                    new Role { RoleName = "Owner" },
                     new Role { RoleName = "Customer" }
                 );
-                context.SaveChanges();  
+                context.SaveChanges();
             }
 
-            // Get roles
-            var adminRole = context.Roles.FirstOrDefault(r => r.RoleName == "Admin");
+            var ownerRole = context.Roles.FirstOrDefault(r => r.RoleName == "Owner");
             var customerRole = context.Roles.FirstOrDefault(r => r.RoleName == "Customer");
 
-            // Get categories
             var vehicleCategory = context.Categories.FirstOrDefault(c => c.Name == "Vehicle");
             var motorcycleCategory = context.Categories.FirstOrDefault(c => c.Name == "Motorcycle");
 
-            // Get listing types
             var rentType = context.ListingTypes.FirstOrDefault(l => l.Name == "Rent");
             var saleType = context.ListingTypes.FirstOrDefault(l => l.Name == "Sale");
 
-            // Seed Users
             if (!context.Users.Any())
             {
                 var users = new List<User>();
 
-                // Admin User
-                if (adminRole != null)
+                if (ownerRole != null)
                 {
                     users.Add(new User
                     {
@@ -73,15 +65,14 @@ namespace VehicleRentalMarketplace.Api.Data
                         Password = PasswordHelper.HashPassword("Password123!"),
                         Email = "ampol@vehiclerental.com",
                         Firstname = "Ampol",
-                        Lastname = "Admin",
-                        RoleID = adminRole.RoleID,
+                        Lastname = "Owner",
+                        RoleID = ownerRole.RoleID,
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     });
                 }
 
-                // Customer User
                 if (customerRole != null)
                 {
                     users.Add(new User
@@ -99,20 +90,19 @@ namespace VehicleRentalMarketplace.Api.Data
                 }
 
                 context.Users.AddRange(users);
-                context.SaveChanges();  
+                context.SaveChanges();
             }
 
-            // Seed Sample Assets (if none)
             if (!context.Assets.Any())
             {
-                var adminUser = context.Users.FirstOrDefault(u => u.Username == "ampol");
+                var ownerUser = context.Users.FirstOrDefault(u => u.Username == "ampol");
 
-                if (adminUser != null && vehicleCategory != null && rentType != null)
+                if (ownerUser != null && vehicleCategory != null && rentType != null)
                 {
                     context.Assets.AddRange(
                         new Asset
                         {
-                            UserID = adminUser.UserID,
+                            UserID = ownerUser.UserID,
                             Title = "Toyota Vios 2020",
                             Description = "Good condition, well-maintained",
                             CategoryId = vehicleCategory.CategoryId,
@@ -127,7 +117,7 @@ namespace VehicleRentalMarketplace.Api.Data
                         },
                         new Asset
                         {
-                            UserID = adminUser.UserID,
+                            UserID = ownerUser.UserID,
                             Title = "Honda Civic 2021",
                             Description = "Low mileage, 1st owner",
                             CategoryId = vehicleCategory.CategoryId,
@@ -141,7 +131,7 @@ namespace VehicleRentalMarketplace.Api.Data
                             UpdatedAt = DateTime.UtcNow
                         }
                     );
-                    context.SaveChanges(); 
+                    context.SaveChanges();
                 }
             }
         }

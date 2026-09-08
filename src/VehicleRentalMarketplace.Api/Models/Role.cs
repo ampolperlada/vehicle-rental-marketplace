@@ -10,5 +10,7 @@ namespace VehicleRentalMarketplace.Api.Models
         [Required]
         [MaxLength(50)]
         public string RoleName {get; set;} = string.Empty;
+
+        
     }
 }

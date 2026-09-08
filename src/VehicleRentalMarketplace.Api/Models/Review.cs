@@ -39,5 +39,15 @@ namespace VehicleRentalMarketplace.Api.Models
         public string Comment { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+
+        // Soft Delete Properties 
+        //comment first since this needs migrations
+
+        //public bool IsDeleted { get; set; } = false;
+        //public DateTime? DeletedAt { get; set; }
+        //public int? DeletedBy { get; set; }
+
+        
     }
 }

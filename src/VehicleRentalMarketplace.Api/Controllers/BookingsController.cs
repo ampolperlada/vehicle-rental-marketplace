@@ -18,7 +18,7 @@ namespace VehicleRentalMarketplace.Api.Controllers
         }
 
         [HttpGet("my-asset-bookings")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> GetMyAssetBookings()
         {
             try
@@ -34,7 +34,7 @@ namespace VehicleRentalMarketplace.Api.Controllers
         }
 
         [HttpGet("asset/{assetId:int}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> GetBookingsByAsset(int assetId)
         {
             try
@@ -50,7 +50,7 @@ namespace VehicleRentalMarketplace.Api.Controllers
         }
 
         [HttpGet("my-bookings")]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Owner, Customer")]
         public async Task<IActionResult> GetMyBookings()
         {
             try
@@ -66,7 +66,7 @@ namespace VehicleRentalMarketplace.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Owner, Customer")]
         public async Task<IActionResult> CreateBooking([FromBody] BookingRequest request)
         {
             try
@@ -82,6 +82,7 @@ namespace VehicleRentalMarketplace.Api.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize(Roles = "Owner, Customer")]
         public async Task<IActionResult> GetBookingById(int id)
         {
             try
@@ -97,6 +98,7 @@ namespace VehicleRentalMarketplace.Api.Controllers
         }
 
         [HttpPut("{id:int}/cancel")]
+        [Authorize(Roles = "Owner, Customer")]
         public async Task<IActionResult> CancelBooking(int id, [FromBody] CancelBookingRequest request)
         {
             try
