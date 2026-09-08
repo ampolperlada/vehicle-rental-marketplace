@@ -11,7 +11,6 @@ using VehicleRentalMarketplace.Api.Services.Review;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -23,6 +22,18 @@ builder.Services.AddScoped<IAssetService, AssetService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IPurchaseService, PurchaseService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+
+// CORS - Allow all for development
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        });
+});
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["Secret"] ?? throw new Exception("JWT Secret not configured");
@@ -63,7 +74,6 @@ builder.Services.AddAuthentication(options =>
             return context.Response.WriteAsync(JsonSerializer.Serialize(response));
         }
     };
-
 });
 
 builder.Services.AddAuthorization();
@@ -72,11 +82,12 @@ var app = builder.Build();
 
 DbInitializer.Seed(app);
 
-app.UseHttpsRedirection();
+// ============================================
+// NO HTTPS REDIRECTION
+// ============================================
+// app.UseHttpsRedirection(); 
 
-// Use CORS - MUST BE BEFORE UseAuthorization
-app.UseCors("AllowReactApp");
-
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
